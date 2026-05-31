@@ -1,0 +1,9 @@
+<!DOCTYPE html>
+<html><head>
+<script>
+localStorage.setItem('agente_token', 'mock-token-test');
+localStorage.setItem('agente_lang', 'pt');
+var p = location.hash.slice(1) || '/overview';
+location.href = 'dashboard.html#' + p;
+</script>
+</head><body></body></html>

@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Agente — Entrar</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,400;0,9..144,500;1,9..144,300&family=Hanken+Grotesk:wght@300;400;500;600&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="dashboard.css"/>
+</head>
+<body>
+<div class="login-page">
+
+  <!-- Language toggle -->
+  <div class="login-lang-toggle">
+    <div class="lang-toggle">
+      <button class="lang-btn active" data-lang-btn="pt" id="lang-pt">🇧🇷 PT</button>
+      <button class="lang-btn" data-lang-btn="en" id="lang-en">EN</button>
+    </div>
+  </div>
+
+  <!-- Card -->
+  <div class="login-card">
+    <div class="login-logo">
+      <span class="login-wordmark" id="login-wordmark">Agente</span>
+      <p class="login-subtitle" id="login-subtitle">Gerencie seu assistente no WhatsApp</p>
+    </div>
+
+    <!-- Error banner -->
+    <div id="login-error" style="display:none;background:#FDECEA;border:1px solid #F5C6C3;border-radius:8px;padding:10px 14px;font-size:13px;color:var(--red);margin-bottom:16px;text-align:center">
+      E-mail ou senha incorretos.
+    </div>
+
+    <form class="login-form" id="login-form" autocomplete="off" novalidate>
+      <div class="login-input-group">
+        <label class="login-label" for="email" id="label-email">E-mail</label>
+        <input
+          type="email"
+          id="email"
+          class="login-input"
+          placeholder="admin@moveisviana.com.br"
+          autocomplete="email"
+          required
+        />
+      </div>
+
+      <div class="login-input-group">
+        <label class="login-label" for="password" id="label-password">Senha</label>
+        <input
+          type="password"
+          id="password"
+          class="login-input"
+          placeholder="••••••••"
+          autocomplete="current-password"
+          required
+        />
+      </div>
+
+      <button type="submit" class="login-btn" id="login-btn">Entrar</button>
+    </form>
+  </div>
+
+</div>
+
+<script>
+(function () {
+  'use strict';
+
+  // ── i18n minimal ───────────────────────────────────────
+  const loginStrings = {
+    pt: {
+      subtitle:  'Gerencie seu assistente no WhatsApp',
+      email:     'E-mail',
+      password:  'Senha',
+      btn:       'Entrar',
+      error:     'E-mail ou senha incorretos.',
+    },
+    en: {
+      subtitle:  'Manage your WhatsApp AI assistant',
+      email:     'Email',
+      password:  'Password',
+      btn:       'Sign in',
+      error:     'Incorrect email or password.',
+    }
+  };
+
+  let lang = localStorage.getItem('agente_lang') || 'pt';
+
+  function applyLang() {
+    const s = loginStrings[lang];
+    document.getElementById('login-subtitle').textContent  = s.subtitle;
+    document.getElementById('label-email').textContent    = s.email;
+    document.getElementById('label-password').textContent = s.password;
+    document.getElementById('login-btn').textContent      = s.btn;
+
+    document.getElementById('lang-pt').classList.toggle('active', lang === 'pt');
+    document.getElementById('lang-en').classList.toggle('active', lang === 'en');
+    document.documentElement.lang = lang === 'pt' ? 'pt-BR' : 'en';
+  }
+
+  document.getElementById('lang-pt').addEventListener('click', () => {
+    lang = 'pt'; localStorage.setItem('agente_lang', lang); applyLang();
+  });
+  document.getElementById('lang-en').addEventListener('click', () => {
+    lang = 'en'; localStorage.setItem('agente_lang', lang); applyLang();
+  });
+
+  applyLang();
+
+  // ── Auth guard (already logged in) ────────────────────
+  if (localStorage.getItem('agente_token')) {
+    window.location.href = '/dashboard';
+    return;
+  }
+
+  // ── Login submit ───────────────────────────────────────
+  const form    = document.getElementById('login-form');
+  const btn     = document.getElementById('login-btn');
+  const errorEl = document.getElementById('login-error');
+
+  form.addEventListener('submit', function (e) {
+    e.preventDefault();
+    errorEl.style.display = 'none';
+
+    const email    = document.getElementById('email').value.trim();
+    const password = document.getElementById('password').value;
+
+    if (!email || !password) return;
+
+    btn.disabled = true;
+    btn.textContent = '…';
+
+    fetch('/api/auth/login', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email, password }),
+    })
+      .then(res => {
+        if (!res.ok) throw new Error('unauthorized');
+        return res.json();
+      })
+      .then(data => {
+        localStorage.setItem('agente_token', data.token);
+        window.location.href = '/dashboard';
+      })
+      .catch(() => {
+        const s = loginStrings[lang];
+        errorEl.textContent = s.error;
+        errorEl.style.display = 'block';
+        btn.disabled = false;
+        btn.textContent = loginStrings[lang].btn;
+      });
+  });
+
+})();
+</script>
+</body>
+</html>
