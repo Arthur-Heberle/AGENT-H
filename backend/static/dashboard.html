@@ -7,7 +7,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com"/>
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
   <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,400;0,9..144,500;1,9..144,300&family=Hanken+Grotesk:wght@300;400;500;600&display=swap" rel="stylesheet"/>
-  <link rel="stylesheet" href="dashboard.css"/>
+  <link rel="stylesheet" href="/static/dashboard.css"/>
 </head>
 <body>
 <div class="app-layout">
@@ -92,10 +92,10 @@
         <div class="topbar-avatar" id="topbar-avatar" title="Conta">MV</div>
         <div class="avatar-dropdown" id="avatar-dropdown">
           <div class="dropdown-item" style="font-size:13px;font-weight:500;color:var(--text-primary);cursor:default">
-            Móveis Viana
+            <span class="dropdown-user-name">—</span>
           </div>
           <div class="dropdown-item" style="font-size:12px;color:var(--text-tertiary);cursor:default;padding-top:2px">
-            admin@moveisviana.com.br
+            <span class="dropdown-user-email">—</span>
           </div>
           <div class="dropdown-divider"></div>
           <div class="dropdown-item danger" id="logout-btn">
@@ -116,6 +116,6 @@
   </div><!-- /.main-content -->
 </div><!-- /.app-layout -->
 
-<script src="dashboard.js"></script>
+<script src="/static/dashboard.js"></script>
 </body>
 </html>

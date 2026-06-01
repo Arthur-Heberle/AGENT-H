@@ -1,19 +1,25 @@
 from datetime import datetime, timedelta, timezone
 
+import bcrypt
 from jose import JWTError, jwt
-from passlib.context import CryptContext
 
 from core.config import settings
 
-_pwd_ctx = CryptContext(schemes=["bcrypt"], deprecated="auto")
+# bcrypt has a hard 72-byte limit on the password input
+_MAX_PW_BYTES = 72
 
 
 def hash_password(plain: str) -> str:
-    return _pwd_ctx.hash(plain)
+    pw = plain.encode("utf-8")[:_MAX_PW_BYTES]
+    return bcrypt.hashpw(pw, bcrypt.gensalt()).decode("utf-8")
 
 
 def verify_password(plain: str, hashed: str) -> bool:
-    return _pwd_ctx.verify(plain, hashed)
+    pw = plain.encode("utf-8")[:_MAX_PW_BYTES]
+    try:
+        return bcrypt.checkpw(pw, hashed.encode("utf-8"))
+    except ValueError:
+        return False
 
 
 def create_token(business_phone: str) -> str:

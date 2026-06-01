@@ -43,12 +43,27 @@ CREATE INDEX IF NOT EXISTS idx_products_business
 CREATE INDEX IF NOT EXISTS idx_products_embedding
   ON products USING ivfflat (embedding vector_cosine_ops) WITH (lists = 100);
 
--- built last with auth step:
 CREATE TABLE IF NOT EXISTS clients (
   id             SERIAL        PRIMARY KEY,
   email          VARCHAR(200)  UNIQUE NOT NULL,
   password_hash  TEXT          NOT NULL,
-  business_phone VARCHAR(30)   NOT NULL,
+  business_phone VARCHAR(30)   UNIQUE NOT NULL,
   business_name  VARCHAR(200),
   created_at     TIMESTAMP     DEFAULT NOW()
+);
+
+CREATE TABLE IF NOT EXISTS client_settings (
+  business_phone  VARCHAR(30)  PRIMARY KEY REFERENCES clients(business_phone),
+  system_prompt   TEXT,
+  ai_language     VARCHAR(10)  DEFAULT 'auto',
+  business_hours  JSONB        NOT NULL DEFAULT '{
+    "mon": {"enabled": true,  "open": "09:00", "close": "18:00"},
+    "tue": {"enabled": true,  "open": "09:00", "close": "18:00"},
+    "wed": {"enabled": true,  "open": "09:00", "close": "18:00"},
+    "thu": {"enabled": true,  "open": "09:00", "close": "18:00"},
+    "fri": {"enabled": true,  "open": "09:00", "close": "18:00"},
+    "sat": {"enabled": true,  "open": "09:00", "close": "13:00"},
+    "sun": {"enabled": false, "open": "09:00", "close": "12:00"}
+  }'::jsonb,
+  updated_at      TIMESTAMP    DEFAULT NOW()
 );

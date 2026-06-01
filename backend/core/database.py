@@ -1,3 +1,5 @@
+import os
+
 import asyncpg
 from pgvector.asyncpg import register_vector
 
@@ -31,7 +33,7 @@ async def close_pool() -> None:
 
 async def init_db() -> None:
     pool = await get_pool()
-    schema_path = "schema.sql"
+    schema_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "../schema.sql")
     with open(schema_path) as f:
         sql = f.read()
     async with pool.acquire() as conn:

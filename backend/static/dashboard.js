@@ -1,6 +1,6 @@
 /* ============================================================
    Agente Dashboard — JS
-   i18n · Real API · Router · Renderers
+   i18n · Mock API · Router · Renderers
    ============================================================ */
 
 'use strict';
@@ -68,9 +68,38 @@ const i18n = {
     'overview.chart':    'Volume de conversas — últimos 7 dias',
     'conversations.title':'Conversas',
     'catalog.title':     'Catálogo',
-    'settings.title':    'Configurações',
-    'settings.soon':     'Em breve',
-    'settings.soon_sub': 'Personalizações de horário, tom de voz e integrações estarão aqui.',
+    'settings.title':       'Configurações',
+    'settings.soon':        'Em breve',
+    'settings.soon_sub':    'Personalizações de horário, tom de voz e integrações estarão aqui.',
+    'config.profile':       'Perfil do Negócio',
+    'config.biz_name':      'Nome do Negócio',
+    'config.email':         'E-mail de Contato',
+    'config.phone':         'Telefone (WhatsApp)',
+    'config.agent':         'Configurações do Agente IA',
+    'config.system_prompt': 'Prompt / Tom de Voz',
+    'config.prompt_hint':   'Descreva como o agente deve se comportar. Máx. 2000 caracteres.',
+    'config.ai_language':   'Idioma do Agente',
+    'config.lang_auto':     'Detectar automaticamente',
+    'config.lang_pt':       'Português',
+    'config.lang_en':       'English',
+    'config.hours':         'Horário de Atendimento',
+    'config.hours_open':    'Abertura',
+    'config.hours_close':   'Fechamento',
+    'config.day.mon':       'Seg',
+    'config.day.tue':       'Ter',
+    'config.day.wed':       'Qua',
+    'config.day.thu':       'Qui',
+    'config.day.fri':       'Sex',
+    'config.day.sat':       'Sáb',
+    'config.day.sun':       'Dom',
+    'config.integration':   'Integração',
+    'config.webhook_url':   'URL do Webhook (n8n)',
+    'config.copy':          'Copiar',
+    'config.copied':        'Copiado!',
+    'config.save':          'Salvar',
+    'config.saving':        'Salvando…',
+    'config.saved':         'Salvo com sucesso',
+    'config.save_error':    'Erro ao salvar',
     'topbar.user':       'Móveis Viana',
     'topbar.role':       'Administrador',
     'select_conv':       'Selecione uma conversa',
@@ -136,9 +165,38 @@ const i18n = {
     'overview.chart':    'Conversation volume — last 7 days',
     'conversations.title':'Conversations',
     'catalog.title':     'Catalog',
-    'settings.title':    'Settings',
-    'settings.soon':     'Coming soon',
-    'settings.soon_sub': 'Business hours, tone, and integrations will be configured here.',
+    'settings.title':       'Settings',
+    'settings.soon':        'Coming soon',
+    'settings.soon_sub':    'Business hours, tone, and integrations will be configured here.',
+    'config.profile':       'Business Profile',
+    'config.biz_name':      'Business Name',
+    'config.email':         'Contact Email',
+    'config.phone':         'Phone (WhatsApp)',
+    'config.agent':         'AI Agent Settings',
+    'config.system_prompt': 'System Prompt / Tone',
+    'config.prompt_hint':   'Describe how the agent should behave. Max 2000 characters.',
+    'config.ai_language':   'Agent Language',
+    'config.lang_auto':     'Auto-detect',
+    'config.lang_pt':       'Português',
+    'config.lang_en':       'English',
+    'config.hours':         'Business Hours',
+    'config.hours_open':    'Open',
+    'config.hours_close':   'Close',
+    'config.day.mon':       'Mon',
+    'config.day.tue':       'Tue',
+    'config.day.wed':       'Wed',
+    'config.day.thu':       'Thu',
+    'config.day.fri':       'Fri',
+    'config.day.sat':       'Sat',
+    'config.day.sun':       'Sun',
+    'config.integration':   'Integration',
+    'config.webhook_url':   'Webhook URL (n8n)',
+    'config.copy':          'Copy',
+    'config.copied':        'Copied!',
+    'config.save':          'Save',
+    'config.saving':        'Saving…',
+    'config.saved':         'Saved successfully',
+    'config.save_error':    'Error saving',
     'topbar.user':       'Viana Furniture',
     'topbar.role':       'Administrator',
     'select_conv':       'Select a conversation',
@@ -214,7 +272,7 @@ let _products = [];
 /* ── REAL API ─────────────────────────────────────────────── */
 const API_HEADERS = () => ({
   'Content-Type': 'application/json',
-  'Authorization': `Bearer ${localStorage.getItem('agente_token')}`
+  'Authorization': `Bearer ${localStorage.getItem('agente_token')}`,
 });
 
 async function realAPI(endpoint, opts = {}) {
@@ -227,17 +285,16 @@ async function realAPI(endpoint, opts = {}) {
   return res.json();
 }
 
-// Alias so all call-sites below continue to work
 const mockAPI = realAPI;
 
 /* ── HELPERS ──────────────────────────────────────────────── */
 function relTime(isoString) {
   if (!isoString) return '';
   const diff = Math.floor((Date.now() - new Date(isoString).getTime()) / 1000);
-  if (diff < 60)        return diff + 's';
-  if (diff < 3600)      return Math.floor(diff / 60) + 'min';
-  if (diff < 86400)     return Math.floor(diff / 3600) + 'h';
-  if (diff < 172800)    return 'ontem';
+  if (diff < 60)     return diff + 's';
+  if (diff < 3600)   return Math.floor(diff / 60) + 'min';
+  if (diff < 86400)  return Math.floor(diff / 3600) + 'h';
+  if (diff < 172800) return 'ontem';
   return Math.floor(diff / 86400) + 'd';
 }
 
@@ -252,7 +309,7 @@ function volume7dToChartData(volume7d) {
 function msgCssRole(role) {
   if (role === 'assistant') return 'ai';
   if (role === 'owner')     return 'ai';
-  return role; // customer
+  return role;
 }
 
 /* ── ROUTER ───────────────────────────────────────────────── */
@@ -290,12 +347,39 @@ function router() {
   render();
 }
 
+/* ── USER INFO ────────────────────────────────────────────── */
+let _userInfo = null;
+
+function applyUserInfo(profile) {
+  _userInfo = profile;
+  const name = profile.business_name || profile.email;
+  const initials = name.split(/\s+/).map(w => w[0]).join('').toUpperCase().slice(0, 2) || '?';
+
+  const sidebarAvatar = document.querySelector('.sidebar-avatar');
+  const sidebarName   = document.querySelector('.sidebar-user-name');
+  if (sidebarAvatar) sidebarAvatar.textContent = initials;
+  if (sidebarName)   sidebarName.textContent   = name;
+
+  const topbarAvatar = document.getElementById('topbar-avatar');
+  if (topbarAvatar) topbarAvatar.textContent = initials;
+
+  const dropdown = document.getElementById('avatar-dropdown');
+  if (dropdown) {
+    const nameEl  = dropdown.querySelector('.dropdown-user-name');
+    const emailEl = dropdown.querySelector('.dropdown-user-email');
+    if (nameEl)  nameEl.textContent  = name;
+    if (emailEl) emailEl.textContent = profile.email;
+  }
+}
+
 /* ── RENDER ALL (i18n re-render) ─────────────────────────── */
 function renderAll() {
   // Update static i18n text
   document.querySelectorAll('[data-i18n]').forEach(el => {
     el.textContent = t(el.dataset.i18n);
   });
+  // Re-apply real user info (i18n sweep above would overwrite .sidebar-user-name)
+  if (_userInfo) applyUserInfo(_userInfo);
   // Re-run page renderer
   router();
 }
@@ -320,6 +404,22 @@ function pill(status) {
 
 function formatPrice(n) {
   return 'R$ ' + Number(n).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+}
+
+/* ── TOAST ────────────────────────────────────────────────── */
+function showToast(message, type = 'success') {
+  const existing = document.getElementById('toast-notification');
+  if (existing) existing.remove();
+  const toast = document.createElement('div');
+  toast.id = 'toast-notification';
+  toast.className = `toast toast-${type}`;
+  toast.textContent = message;
+  document.body.appendChild(toast);
+  requestAnimationFrame(() => toast.classList.add('toast-visible'));
+  setTimeout(() => {
+    toast.classList.remove('toast-visible');
+    setTimeout(() => toast.remove(), 300);
+  }, 2800);
 }
 
 /* ── ERROR BANNER ─────────────────────────────────────────── */
@@ -369,13 +469,13 @@ function renderOverview() {
       </div>
     </div>`;
 
-  // Load stats + chart
+  // Load stats + chart (volume_7d comes from stats)
   mockAPI('/api/stats').then(stats => {
     const strip = document.getElementById('kpi-strip');
     if (!strip) return;
     const deltaClass = d => d > 0 ? 'positive' : d < 0 ? 'negative' : 'neutral';
     const deltaIcon  = d => d > 0 ? '▲' : d < 0 ? '▼' : '—';
-    const respTime   = stats.avg_response_time_s !== null && stats.avg_response_time_s !== undefined
+    const respTime   = stats.avg_response_time_s != null
       ? stats.avg_response_time_s.toFixed(1) + 's' : '—';
     strip.innerHTML = `
       <div class="kpi-card">
@@ -402,14 +502,24 @@ function renderOverview() {
         <div class="kpi-sub">${t('kpi.qualified')}</div>
       </div>`;
 
-    // Render chart from volume_7d
+    // Chart from real volume_7d
     const chartCard = document.getElementById('chart-card');
-    if (chartCard && stats.volume_7d && stats.volume_7d.length) {
-      chartCard.innerHTML = `
-        <div class="flex items-center justify-between mb-16">
-          <span class="font-display text-20">${t('overview.chart')}</span>
-        </div>
-        <div class="chart-wrap">${buildChart(volume7dToChartData(stats.volume_7d))}</div>`;
+    if (chartCard) {
+      if (stats.volume_7d && stats.volume_7d.length) {
+        chartCard.innerHTML = `
+          <div class="flex items-center justify-between mb-16">
+            <span class="font-display text-20">${t('overview.chart')}</span>
+          </div>
+          <div class="chart-wrap">${buildChart(volume7dToChartData(stats.volume_7d))}</div>`;
+      } else {
+        chartCard.innerHTML = `
+          <div class="flex items-center justify-between mb-16">
+            <span class="font-display text-20">${t('overview.chart')}</span>
+          </div>
+          <div style="height:180px;display:flex;align-items:center;justify-content:center;color:var(--text-tertiary);font-size:13px">
+            ${t('empty.conversations')}
+          </div>`;
+      }
     }
   }).catch(() => {
     const strip = document.getElementById('kpi-strip');
@@ -640,7 +750,7 @@ async function renderConvDetail(conv) {
       <div style="text-align:center;color:var(--text-tertiary);padding:24px;font-size:13px">Carregando…</div>
     </div>`;
 
-  // Fetch messages
+  // Fetch messages from API
   try {
     const messages = await realAPI(`/api/conversations/${encodeURIComponent(conv.customer_phone)}/messages`);
     const msgEl = detail.querySelector('#conv-messages');
@@ -650,11 +760,10 @@ async function renderConvDetail(conv) {
       } else {
         msgEl.innerHTML = messages.map(m => {
           const cssRole = msgCssRole(m.role);
-          const timeStr = m.created_at ? relTime(m.created_at) : '';
           return `
             <div class="msg-row ${escapeHtml(cssRole)}">
               <div class="msg-bubble ${escapeHtml(cssRole)}">${escapeHtml(m.message)}</div>
-              <div class="msg-time">${escapeHtml(timeStr)}</div>
+              <div class="msg-time">${escapeHtml(relTime(m.created_at))}</div>
             </div>`;
         }).join('');
         msgEl.scrollTop = msgEl.scrollHeight;
@@ -924,30 +1033,253 @@ function closeDrawer() {
 }
 
 /* ── CONFIG PAGE ──────────────────────────────────────────── */
+/* ── CONFIG PAGE RENDERERS ────────────────────────────────── */
+
+function _configSectionCard(title, bodyHtml, footerHtml = '') {
+  return `
+    <div class="card mb-24">
+      <div class="config-section-header">
+        <h2 class="config-section-title">${escapeHtml(title)}</h2>
+        <hr class="config-section-divider">
+      </div>
+      ${bodyHtml}
+      ${footerHtml ? `<div class="config-section-footer">${footerHtml}</div>` : ''}
+    </div>`;
+}
+
+function _configSaveBtn(id) {
+  return `<button class="btn-primary" id="${id}">${t('config.save')}</button>`;
+}
+
+function renderConfigProfile(profile) {
+  const body = `
+    <div class="config-field-row">
+      <div class="config-field-label">${t('config.biz_name')}</div>
+      <div><input class="form-input" id="cfg-biz-name" type="text" value="${escapeHtml(profile.business_name || '')}"></div>
+    </div>
+    <div class="config-field-row">
+      <div class="config-field-label">${t('config.email')}</div>
+      <div class="config-field-value">${escapeHtml(profile.email)}</div>
+    </div>
+    <div class="config-field-row">
+      <div class="config-field-label">${t('config.phone')}</div>
+      <div class="config-field-value">${escapeHtml(profile.business_phone)}</div>
+    </div>`;
+  return _configSectionCard(t('config.profile'), body, _configSaveBtn('cfg-profile-save'));
+}
+
+function renderConfigAgent(settings) {
+  const prompt = settings.system_prompt || '';
+  const lang = settings.ai_language || 'auto';
+  const body = `
+    <div class="config-field-row">
+      <div>
+        <div class="config-field-label">${t('config.system_prompt')}</div>
+        <div class="config-field-hint">${t('config.prompt_hint')}</div>
+      </div>
+      <div>
+        <textarea class="form-input" id="cfg-system-prompt" maxlength="2000" rows="6">${escapeHtml(prompt)}</textarea>
+        <div class="config-char-count"><span id="cfg-prompt-count">${prompt.length}</span> / 2000</div>
+      </div>
+    </div>
+    <div class="config-field-row">
+      <div class="config-field-label">${t('config.ai_language')}</div>
+      <div>
+        <select class="form-input" id="cfg-ai-language">
+          <option value="auto"${lang === 'auto' ? ' selected' : ''}>${t('config.lang_auto')}</option>
+          <option value="pt"${lang === 'pt' ? ' selected' : ''}>${t('config.lang_pt')}</option>
+          <option value="en"${lang === 'en' ? ' selected' : ''}>${t('config.lang_en')}</option>
+        </select>
+      </div>
+    </div>`;
+  return _configSectionCard(t('config.agent'), body, _configSaveBtn('cfg-agent-save'));
+}
+
+function renderConfigHours(hours) {
+  const days = ['mon', 'tue', 'wed', 'thu', 'fri', 'sat', 'sun'];
+  const rows = days.map(d => {
+    const day = hours[d] || { enabled: false, open: '09:00', close: '18:00' };
+    const disabled = day.enabled ? '' : ' disabled';
+    return `
+      <div class="config-hours-row">
+        <label class="toggle-wrap">
+          <input type="checkbox" class="hours-day-toggle" data-day="${d}"${day.enabled ? ' checked' : ''}>
+          <span class="toggle-track"><span class="toggle-thumb"></span></span>
+        </label>
+        <span class="config-hours-day">${t('config.day.' + d)}</span>
+        <input type="time" class="form-input" data-day="${d}" data-field="open" value="${day.open}"${disabled}>
+        <input type="time" class="form-input" data-day="${d}" data-field="close" value="${day.close}"${disabled}>
+      </div>`;
+  }).join('');
+  const body = `<div class="config-hours-grid">${rows}</div>`;
+  return _configSectionCard(t('config.hours'), body, _configSaveBtn('cfg-hours-save'));
+}
+
+function renderConfigIntegration(profile) {
+  const webhookUrl = `https://your-n8n-instance.com/webhook/whatsapp/${encodeURIComponent(profile.business_phone)}`;
+  const body = `
+    <div class="config-field-row">
+      <div class="config-field-label">${t('config.phone')}</div>
+      <div class="config-copy-row">
+        <span class="config-copy-value">${escapeHtml(profile.business_phone)}</span>
+        <button class="btn-outline" data-copy="${escapeHtml(profile.business_phone)}" id="copy-phone">${t('config.copy')}</button>
+      </div>
+    </div>
+    <div class="config-field-row">
+      <div class="config-field-label">${t('config.webhook_url')}</div>
+      <div class="config-copy-row">
+        <span class="config-copy-value" title="${escapeHtml(webhookUrl)}">${escapeHtml(webhookUrl)}</span>
+        <button class="btn-outline" data-copy="${escapeHtml(webhookUrl)}" id="copy-webhook">${t('config.copy')}</button>
+      </div>
+    </div>`;
+  return _configSectionCard(t('config.integration'), body);
+}
+
+function _collectHours() {
+  const days = ['mon', 'tue', 'wed', 'thu', 'fri', 'sat', 'sun'];
+  const hours = {};
+  days.forEach(d => {
+    const toggle = document.querySelector(`.hours-day-toggle[data-day="${d}"]`);
+    const open   = document.querySelector(`input[data-day="${d}"][data-field="open"]`);
+    const close  = document.querySelector(`input[data-day="${d}"][data-field="close"]`);
+    hours[d] = {
+      enabled: toggle ? toggle.checked : false,
+      open:    open   ? open.value   : '09:00',
+      close:   close  ? close.value  : '18:00',
+    };
+  });
+  return hours;
+}
+
+function wireConfigSections(profile, settings) {
+  // Live char counter for system prompt
+  const promptEl = document.getElementById('cfg-system-prompt');
+  const countEl  = document.getElementById('cfg-prompt-count');
+  if (promptEl && countEl) {
+    promptEl.addEventListener('input', () => { countEl.textContent = promptEl.value.length; });
+  }
+
+  // Day toggle → enable/disable time inputs
+  document.querySelectorAll('.hours-day-toggle').forEach(toggle => {
+    toggle.addEventListener('change', () => {
+      const day = toggle.dataset.day;
+      document.querySelectorAll(`input[data-day="${day}"][data-field]`).forEach(inp => {
+        inp.disabled = !toggle.checked;
+      });
+    });
+  });
+
+  // Copy buttons
+  document.querySelectorAll('[data-copy]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      navigator.clipboard.writeText(btn.dataset.copy).then(() => {
+        const orig = btn.textContent;
+        btn.textContent = t('config.copied');
+        setTimeout(() => { btn.textContent = orig; }, 1800);
+      });
+    });
+  });
+
+  // Profile save
+  const profileBtn = document.getElementById('cfg-profile-save');
+  if (profileBtn) {
+    profileBtn.addEventListener('click', async () => {
+      const bizName = document.getElementById('cfg-biz-name')?.value || '';
+      profileBtn.disabled = true;
+      profileBtn.textContent = t('config.saving');
+      try {
+        await mockAPI('/api/profile', { method: 'PUT', body: { business_name: bizName } });
+        showToast(t('config.saved'));
+      } catch {
+        showToast(t('config.save_error'), 'error');
+      } finally {
+        profileBtn.disabled = false;
+        profileBtn.textContent = t('config.save');
+      }
+    });
+  }
+
+  // Agent save (also sends current hours so we don't clobber them)
+  const agentBtn = document.getElementById('cfg-agent-save');
+  if (agentBtn) {
+    agentBtn.addEventListener('click', async () => {
+      agentBtn.disabled = true;
+      agentBtn.textContent = t('config.saving');
+      try {
+        await mockAPI('/api/settings', {
+          method: 'PUT',
+          body: {
+            system_prompt: document.getElementById('cfg-system-prompt')?.value || null,
+            ai_language:   document.getElementById('cfg-ai-language')?.value || 'auto',
+            business_hours: _collectHours(),
+          },
+        });
+        showToast(t('config.saved'));
+      } catch {
+        showToast(t('config.save_error'), 'error');
+      } finally {
+        agentBtn.disabled = false;
+        agentBtn.textContent = t('config.save');
+      }
+    });
+  }
+
+  // Hours save (also sends current agent settings so we don't clobber them)
+  const hoursBtn = document.getElementById('cfg-hours-save');
+  if (hoursBtn) {
+    hoursBtn.addEventListener('click', async () => {
+      hoursBtn.disabled = true;
+      hoursBtn.textContent = t('config.saving');
+      try {
+        await mockAPI('/api/settings', {
+          method: 'PUT',
+          body: {
+            system_prompt:  document.getElementById('cfg-system-prompt')?.value || null,
+            ai_language:    document.getElementById('cfg-ai-language')?.value || 'auto',
+            business_hours: _collectHours(),
+          },
+        });
+        showToast(t('config.saved'));
+      } catch {
+        showToast(t('config.save_error'), 'error');
+      } finally {
+        hoursBtn.disabled = false;
+        hoursBtn.textContent = t('config.save');
+      }
+    });
+  }
+}
+
 function renderConfig() {
   const main = document.getElementById('main');
+  const skeleton = [0, 1, 2, 3].map(() => `
+    <div class="card mb-24">
+      ${skLine('35%', 16, 12)}${skLine('100%', 1, 20)}
+      ${skLine('45%', 13, 10)}${skLine('65%', 36, 14)}
+      ${skLine('45%', 13, 10)}${skLine('65%', 36, 14)}
+    </div>`).join('');
+
   main.innerHTML = `
     <div class="page-section">
       <div class="page-header">
         <h1 class="page-title-large font-display">${t('settings.title')}</h1>
       </div>
-      <div class="card">
-        <div class="config-soon">
-          <svg viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg" width="64" height="64" style="opacity:0.5">
-            <circle cx="32" cy="32" r="20" stroke="var(--border-dark)" stroke-width="1.5" fill="var(--gold-light)"/>
-            <path d="M32 20 v6 M32 38 v6 M20 32 h6 M38 32 h6
-                     M23.5 23.5 l4.2 4.2 M36.3 36.3 l4.2 4.2
-                     M40.5 23.5 l-4.2 4.2 M27.7 36.3 l-4.2 4.2"
-                  stroke="var(--border-dark)" stroke-width="1.5" stroke-linecap="round"/>
-            <circle cx="32" cy="32" r="5" fill="var(--gold)" opacity="0.4"/>
-          </svg>
-          <div>
-            <div class="config-soon-title">${t('settings.soon')}</div>
-            <div class="config-soon-sub">${t('settings.soon_sub')}</div>
-          </div>
-        </div>
-      </div>
+      <div id="config-content">${skeleton}</div>
     </div>`;
+
+  Promise.all([mockAPI('/api/profile'), mockAPI('/api/settings')])
+    .then(([profile, settings]) => {
+      document.getElementById('config-content').innerHTML =
+        renderConfigProfile(profile) +
+        renderConfigAgent(settings) +
+        renderConfigHours(settings.business_hours) +
+        renderConfigIntegration(profile);
+      wireConfigSections(profile, settings);
+    })
+    .catch(() => {
+      const el = document.getElementById('config-content');
+      if (el) el.innerHTML = errorBanner();
+    });
 }
 
 /* ── INIT ─────────────────────────────────────────────────── */
@@ -965,6 +1297,9 @@ document.addEventListener('DOMContentLoaded', () => {
   updateLangButtons();
   router();
 
+  // Fetch real user info and populate sidebar/topbar
+  realAPI('/api/profile').then(applyUserInfo).catch(() => {});
+
   // Hash routing
   window.addEventListener('hashchange', router);
 
@@ -980,6 +1315,6 @@ document.addEventListener('DOMContentLoaded', () => {
   // Logout
   document.getElementById('logout-btn')?.addEventListener('click', () => {
     localStorage.removeItem('agente_token');
-    window.location.href = 'login.html';
+    window.location.href = '/login';
   });
 });
