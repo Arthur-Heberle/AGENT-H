@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, Response
 
 from core.deps import get_db, require_auth
 from models.settings import ProfileIn, ProfileOut, SettingsIn, SettingsOut
@@ -15,6 +15,12 @@ async def get_profile(pool=Depends(get_db), phone: str = Depends(require_auth)):
 @router.put("/profile", response_model=ProfileOut)
 async def update_profile(data: ProfileIn, pool=Depends(get_db), phone: str = Depends(require_auth)):
     return await repo.update_profile(pool, phone, data)
+
+
+@router.delete("/account", status_code=204)
+async def delete_account(pool=Depends(get_db), phone: str = Depends(require_auth)):
+    await repo.delete_account(pool, phone)
+    return Response(status_code=204)
 
 
 @router.get("/settings", response_model=SettingsOut)

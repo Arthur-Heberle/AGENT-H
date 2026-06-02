@@ -14,7 +14,7 @@ build/
 venv/
 ENV/
 
-# Environment variables — never commit real secrets
+# Environment variables
 backend/.env
 .env
 
@@ -34,3 +34,6 @@ htmlcov/
 
 # Railway / Docker
 *.dockerignore
+
+# Plus
+pictures/

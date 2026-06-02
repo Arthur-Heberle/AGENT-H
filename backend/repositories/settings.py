@@ -49,9 +49,34 @@ async def get_profile(pool: Pool, business_phone: str) -> ProfileOut:
 
 
 async def update_profile(pool: Pool, business_phone: str, data: ProfileIn) -> ProfileOut:
+    if data.email is not None:
+        conflict = await pool.fetchrow(
+            "SELECT id FROM clients WHERE email = $1 AND business_phone != $2",
+            data.email,
+            business_phone,
+        )
+        if conflict:
+            raise HTTPException(status_code=409, detail="Email already in use")
+        await pool.execute(
+            "UPDATE clients SET email = $1 WHERE business_phone = $2",
+            data.email,
+            business_phone,
+        )
+    if data.business_name is not None:
+        await pool.execute(
+            "UPDATE clients SET business_name = $1 WHERE business_phone = $2",
+            data.business_name,
+            business_phone,
+        )
+    return await get_profile(pool, business_phone)
+
+
+async def delete_account(pool: Pool, business_phone: str) -> None:
     await pool.execute(
-        "UPDATE clients SET business_name = $1 WHERE business_phone = $2",
-        data.business_name,
+        "DELETE FROM client_settings WHERE business_phone = $1",
         business_phone,
     )
-    return await get_profile(pool, business_phone)
+    await pool.execute(
+        "DELETE FROM clients WHERE business_phone = $1",
+        business_phone,
+    )

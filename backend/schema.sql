@@ -15,8 +15,8 @@ CREATE TABLE IF NOT EXISTS messages (
   customer_phone    VARCHAR(30)  NOT NULL,
   business_phone    VARCHAR(30)  NOT NULL,
   message           TEXT         NOT NULL,
-  role              VARCHAR(20)  DEFAULT 'customer',  -- customer | assistant | owner
-  processing_status VARCHAR(20)  DEFAULT 'pending',   -- pending | in_progress | done | idle
+  role              VARCHAR(20)  DEFAULT 'customer',  -- customer | assistant | employee
+  processing_status VARCHAR(20)  DEFAULT 'pending',   -- pending | in_progress | done
   classification    VARCHAR(30),                      -- QUALIFIED_LEAD | GENERAL_QUESTION | GREETING | OUT_OF_SCOPE
   created_at        TIMESTAMP    DEFAULT NOW()
 );
@@ -52,8 +52,18 @@ CREATE TABLE IF NOT EXISTS clients (
   created_at     TIMESTAMP     DEFAULT NOW()
 );
 
+-- Idempotent UNIQUE constraint on clients.business_phone (required for multi-tenancy and FK integrity).
+-- CREATE TABLE IF NOT EXISTS won't add this to an existing table, so we use a DO block.
+DO $$ BEGIN
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_constraint WHERE conname = 'clients_business_phone_unique'
+  ) THEN
+    ALTER TABLE clients ADD CONSTRAINT clients_business_phone_unique UNIQUE (business_phone);
+  END IF;
+END $$;
+
 CREATE TABLE IF NOT EXISTS client_settings (
-  business_phone  VARCHAR(30)  PRIMARY KEY REFERENCES clients(business_phone),
+  business_phone  VARCHAR(30)  PRIMARY KEY,  -- no FK: avoids creation failure on DBs missing the UNIQUE constraint above
   system_prompt   TEXT,
   ai_language     VARCHAR(10)  DEFAULT 'auto',
   business_hours  JSONB        NOT NULL DEFAULT '{

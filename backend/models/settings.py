@@ -3,8 +3,8 @@ from pydantic import BaseModel, field_validator
 
 class BusinessHoursDay(BaseModel):
     enabled: bool = False
-    open: str = "09:00"
-    close: str = "18:00"
+    open: str = "06:00"
+    close: str = "22:00"
 
 
 class BusinessHours(BaseModel):
@@ -43,4 +43,5 @@ class ProfileOut(BaseModel):
 
 
 class ProfileIn(BaseModel):
-    business_name: str
+    business_name: str | None = None
+    email: str | None = None

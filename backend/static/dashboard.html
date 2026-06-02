@@ -1,121 +1,141 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
+
 <head>
-  <meta charset="UTF-8"/>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Agente — Dashboard</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com"/>
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
-  <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,400;0,9..144,500;1,9..144,300&family=Hanken+Grotesk:wght@300;400;500;600&display=swap" rel="stylesheet"/>
-  <link rel="stylesheet" href="/static/dashboard.css"/>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Heberle AI Agent — Dashboard</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,400;0,9..144,500;1,9..144,300&family=Hanken+Grotesk:wght@300;400;500;600&display=swap"
+    rel="stylesheet" />
+  <script>
+    (function () {
+      var theme = localStorage.getItem('agente_theme');
+      if (theme && theme !== 'default') {
+        document.documentElement.setAttribute('data-theme', theme);
+      }
+    })();
+  </script>
+  <link rel="stylesheet" href="/static/dashboard.css" />
 </head>
+
 <body>
-<div class="app-layout">
+  <div class="app-layout">
 
-  <!-- ── SIDEBAR ─────────────────────────────────────────── -->
-  <aside class="sidebar">
-    <div class="sidebar-logo">
-      <span class="sidebar-wordmark">Agente</span>
-      <span class="sidebar-tagline">WhatsApp AI</span>
-    </div>
-
-    <nav class="sidebar-nav">
-      <div class="nav-item" data-route="#/overview" onclick="navigate('#/overview')">
-        <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
-          <rect x="2" y="2" width="7" height="7" rx="2"/>
-          <rect x="11" y="2" width="7" height="7" rx="2"/>
-          <rect x="2" y="11" width="7" height="7" rx="2"/>
-          <rect x="11" y="11" width="7" height="7" rx="2"/>
-        </svg>
-        <span data-i18n="nav.overview">Visão Geral</span>
+    <!-- ── SIDEBAR ─────────────────────────────────────────── -->
+    <aside class="sidebar">
+      <div class="sidebar-logo">
+        <span class="sidebar-wordmark">Agente WhatsApp</span>
+        <span class="sidebar-tagline">WhatsApp AI</span>
       </div>
 
-      <div class="nav-item" data-route="#/conversas" onclick="navigate('#/conversas')">
-        <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
-          <path d="M3 4a1 1 0 011-1h12a1 1 0 011 1v8a1 1 0 01-1 1H6l-4 3V4z"/>
-        </svg>
-        <span data-i18n="nav.conversations">Conversas</span>
-      </div>
-
-      <div class="nav-item" data-route="#/catalogo" onclick="navigate('#/catalogo')">
-        <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
-          <rect x="2" y="3" width="16" height="3" rx="1"/>
-          <rect x="2" y="8.5" width="16" height="3" rx="1"/>
-          <rect x="2" y="14" width="16" height="3" rx="1"/>
-        </svg>
-        <span data-i18n="nav.catalog">Catálogo</span>
-      </div>
-
-      <div class="nav-divider"></div>
-
-      <div class="nav-item" data-route="#/config" onclick="navigate('#/config')">
-        <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
-          <circle cx="10" cy="10" r="2.5"/>
-          <path d="M10 2v2M10 16v2M2 10h2M16 10h2M4.22 4.22l1.42 1.42M14.36 14.36l1.42 1.42M4.22 15.78l1.42-1.42M14.36 5.64l1.42-1.42"/>
-        </svg>
-        <span data-i18n="nav.settings">Configurações</span>
-      </div>
-    </nav>
-
-    <div class="sidebar-footer">
-      <div class="sidebar-user">
-        <div class="sidebar-avatar">MV</div>
-        <div class="sidebar-user-info">
-          <div class="sidebar-user-name" data-i18n="topbar.user">Móveis Viana</div>
-          <div class="sidebar-user-role" data-i18n="topbar.role">Administrador</div>
+      <nav class="sidebar-nav">
+        <div class="nav-item" data-route="#/overview" onclick="navigate('#/overview')">
+          <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"
+            stroke-linejoin="round">
+            <rect x="2" y="2" width="7" height="7" rx="2" />
+            <rect x="11" y="2" width="7" height="7" rx="2" />
+            <rect x="2" y="11" width="7" height="7" rx="2" />
+            <rect x="11" y="11" width="7" height="7" rx="2" />
+          </svg>
+          <span data-i18n="nav.overview">Visão Geral</span>
         </div>
-      </div>
-    </div>
-  </aside>
 
-  <!-- ── MAIN ───────────────────────────────────────────── -->
-  <div class="main-content">
+        <div class="nav-item" data-route="#/conversas" onclick="navigate('#/conversas')">
+          <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"
+            stroke-linejoin="round">
+            <path d="M3 4a1 1 0 011-1h12a1 1 0 011 1v8a1 1 0 01-1 1H6l-4 3V4z" />
+          </svg>
+          <span data-i18n="nav.conversations">Conversas</span>
+        </div>
 
-    <!-- Top bar -->
-    <header class="topbar">
-      <div class="topbar-breadcrumb">
-        <span style="color:var(--text-tertiary);font-size:13px">Agente</span>
-        <svg width="14" height="14" viewBox="0 0 14 14" fill="none" style="flex-shrink:0">
-          <path d="M5 3l4 4-4 4" stroke="var(--text-tertiary)" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/>
-        </svg>
-        <span class="page-title" id="page-title">Visão Geral</span>
-      </div>
+        <div class="nav-item" data-route="#/catalogo" onclick="navigate('#/catalogo')">
+          <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"
+            stroke-linejoin="round">
+            <rect x="2" y="3" width="16" height="3" rx="1" />
+            <rect x="2" y="8.5" width="16" height="3" rx="1" />
+            <rect x="2" y="14" width="16" height="3" rx="1" />
+          </svg>
+          <span data-i18n="nav.catalog">Catálogo</span>
+        </div>
 
-      <!-- Language toggle -->
-      <div class="lang-toggle">
-        <button class="lang-btn active" data-lang-btn="pt" onclick="setLang('pt')">PT</button>
-        <button class="lang-btn" data-lang-btn="en" onclick="setLang('en')">EN</button>
-      </div>
+        <div class="nav-divider"></div>
 
-      <!-- Avatar / dropdown -->
-      <div style="position:relative">
-        <div class="topbar-avatar" id="topbar-avatar" title="Conta">MV</div>
-        <div class="avatar-dropdown" id="avatar-dropdown">
-          <div class="dropdown-item" style="font-size:13px;font-weight:500;color:var(--text-primary);cursor:default">
-            <span class="dropdown-user-name">—</span>
-          </div>
-          <div class="dropdown-item" style="font-size:12px;color:var(--text-tertiary);cursor:default;padding-top:2px">
-            <span class="dropdown-user-email">—</span>
-          </div>
-          <div class="dropdown-divider"></div>
-          <div class="dropdown-item danger" id="logout-btn">
-            <svg width="15" height="15" viewBox="0 0 15 15" fill="none">
-              <path d="M5 13H2a1 1 0 01-1-1V3a1 1 0 011-1h3M10 10l3-3-3-3M13 7.5H6" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/>
-            </svg>
-            <span data-i18n="btn.logout">Sair</span>
+        <div class="nav-item" data-route="#/config" onclick="navigate('#/config')">
+          <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"
+            stroke-linejoin="round">
+            <circle cx="10" cy="10" r="2.5" />
+            <path
+              d="M10 2v2M10 16v2M2 10h2M16 10h2M4.22 4.22l1.42 1.42M14.36 14.36l1.42 1.42M4.22 15.78l1.42-1.42M14.36 5.64l1.42-1.42" />
+          </svg>
+          <span data-i18n="nav.settings">Configurações</span>
+        </div>
+      </nav>
+
+      <div class="sidebar-footer">
+        <div class="sidebar-user">
+          <div class="sidebar-avatar">AH</div>
+          <div class="sidebar-user-info">
+            <div class="sidebar-user-name" data-i18n="topbar.user">Arthur Heberle</div>
+            <div class="sidebar-user-role" data-i18n="topbar.role">Administrador</div>
           </div>
         </div>
       </div>
-    </header>
+    </aside>
 
-    <!-- Page content — swapped by router -->
-    <main class="page-content" id="main">
-      <!-- Populated by dashboard.js -->
-    </main>
+    <!-- ── MAIN ───────────────────────────────────────────── -->
+    <div class="main-content">
 
-  </div><!-- /.main-content -->
-</div><!-- /.app-layout -->
+      <!-- Top bar -->
+      <header class="topbar">
+        <div class="topbar-breadcrumb">
+          <span style="color:var(--text-tertiary);font-size:13px">Agente WhatsApp</span>
+          <svg width="14" height="14" viewBox="0 0 14 14" fill="none" style="flex-shrink:0">
+            <path d="M5 3l4 4-4 4" stroke="var(--text-tertiary)" stroke-width="1.2" stroke-linecap="round"
+              stroke-linejoin="round" />
+          </svg>
+          <span class="page-title" id="page-title">Visão Geral</span>
+        </div>
 
-<script src="/static/dashboard.js"></script>
+        <!-- Language toggle -->
+        <div class="lang-toggle">
+          <button class="lang-btn active" data-lang-btn="pt" onclick="setLang('pt')">PT</button>
+          <button class="lang-btn" data-lang-btn="en" onclick="setLang('en')">EN</button>
+        </div>
+
+        <!-- Avatar / dropdown -->
+        <div style="position:relative">
+          <div class="topbar-avatar" id="topbar-avatar" title="Conta">MV</div>
+          <div class="avatar-dropdown" id="avatar-dropdown">
+            <div class="dropdown-item" style="font-size:13px;font-weight:500;color:var(--text-primary);cursor:default">
+              <span class="dropdown-user-name">—</span>
+            </div>
+            <div class="dropdown-item" style="font-size:12px;color:var(--text-tertiary);cursor:default;padding-top:2px">
+              <span class="dropdown-user-email">—</span>
+            </div>
+            <div class="dropdown-divider"></div>
+            <div class="dropdown-item danger" id="logout-btn">
+              <svg width="15" height="15" viewBox="0 0 15 15" fill="none">
+                <path d="M5 13H2a1 1 0 01-1-1V3a1 1 0 011-1h3M10 10l3-3-3-3M13 7.5H6" stroke="currentColor"
+                  stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round" />
+              </svg>
+              <span data-i18n="btn.logout">Sair</span>
+            </div>
+          </div>
+        </div>
+      </header>
+
+      <!-- Page content — swapped by router -->
+      <main class="page-content" id="main">
+        <!-- Populated by dashboard.js -->
+      </main>
+
+    </div><!-- /.main-content -->
+  </div><!-- /.app-layout -->
+
+  <script src="/static/dashboard.js"></script>
 </body>
+
 </html>

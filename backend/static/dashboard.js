@@ -5,201 +5,184 @@
 
 'use strict';
 
+(function() {
+  const savedTheme = localStorage.getItem('agente_theme');
+  if (savedTheme && savedTheme !== 'default') {
+    document.documentElement.setAttribute('data-theme', savedTheme);
+  }
+})();
+
 /* ── i18n ─────────────────────────────────────────────────── */
 const i18n = {
   pt: {
-    'nav.overview':      'Visão Geral',
+    'nav.overview': 'Visão Geral',
     'nav.conversations': 'Conversas',
-    'nav.catalog':       'Catálogo',
-    'nav.settings':      'Configurações',
+    'nav.catalog': 'Catálogo',
+    'nav.settings': 'Configurações',
     'kpi.conversations': 'Conversas hoje',
     'kpi.response_time': 'Tempo de resposta',
-    'kpi.handoffs':      'Atendimentos humanos',
-    'kpi.leads':         'Leads capturados',
-    'kpi.via_ai':        'via IA',
-    'kpi.takeovers':     'takeovers hoje',
-    'kpi.qualified':     'mensagens qualificadas',
-    'kpi.vs_yesterday':  'vs. ontem',
-    'table.client':      'Cliente',
-    'table.last_message':'Última mensagem',
-    'table.status':      'Status',
-    'table.time':        'Horário',
-    'table.action':      'Ação',
-    'catalog.add':       'Adicionar produto',
-    'catalog.edit_title':'Editar produto',
+    'kpi.handoffs': 'Atendimentos humanos',
+    'kpi.leads': 'Leads capturados',
+    'kpi.via_ai': 'via IA',
+    'kpi.takeovers': 'takeovers hoje',
+    'kpi.qualified': 'mensagens qualificadas',
+    'kpi.vs_yesterday': 'vs. ontem',
+    'table.client': 'Cliente',
+    'table.last_message': 'Última mensagem',
+    'table.status': 'Status',
+    'table.time': 'Horário',
+    'table.action': 'Ação',
+    'catalog.add': 'Adicionar produto',
+    'catalog.edit_title': 'Editar produto',
     'catalog.add_title': 'Novo produto',
-    'catalog.name':      'Nome',
-    'catalog.category':  'Categoria',
-    'catalog.price':     'Preço',
-    'catalog.stock':     'Estoque',
-    'catalog.description':'Descrição',
-    'catalog.specs':     'Especificações',
-    'catalog.save':      'Salvar produto',
-    'catalog.cancel':    'Cancelar',
-    'catalog.col_num':   '#',
-    'catalog.col_name':  'Nome',
-    'catalog.col_cat':   'Categoria',
+    'catalog.name': 'Nome',
+    'catalog.category': 'Categoria',
+    'catalog.price': 'Preço',
+    'catalog.stock': 'Estoque',
+    'catalog.description': 'Descrição',
+    'catalog.specs': 'Especificações',
+    'catalog.save': 'Salvar produto',
+    'catalog.cancel': 'Cancelar',
+    'catalog.col_num': '#',
+    'catalog.col_name': 'Nome',
+    'catalog.col_cat': 'Categoria',
     'catalog.col_price': 'Preço',
     'catalog.col_stock': 'Estoque',
-    'catalog.col_status':'Status',
-    'catalog.col_actions':'Ações',
+    'catalog.col_status': 'Status',
+    'catalog.col_actions': 'Ações',
     'catalog.desc_hint': 'Escreva descrições detalhadas para melhorar a busca por IA',
-    'status.active':     'Ativo',
-    'status.paused':     'Pausado',
-    'status.inactive':   'Inativo',
-    'status.ai_on':      'IA ativada',
-    'status.ai_off':     'IA pausada',
-    'empty.conversations':'Nenhuma conversa ainda.',
-    'empty.catalog':     'Catálogo vazio. Adicione seu primeiro produto.',
+    'status.active': 'Ativo',
+    'status.paused': 'Pausado',
+    'status.inactive': 'Inativo',
+    'status.ai_on': 'IA ativada',
+    'status.ai_off': 'IA pausada',
+    'empty.conversations': 'Nenhuma conversa ainda.',
+    'empty.catalog': 'Catálogo vazio. Adicione seu primeiro produto.',
     'empty.conv_select': 'Selecione uma conversa para visualizar',
-    'error.generic':     'Erro ao carregar dados.',
-    'btn.retry':         'Tentar novamente',
-    'btn.open':          'Abrir',
-    'btn.logout':        'Sair',
-    'btn.edit':          'Editar',
-    'btn.delete':        'Excluir',
-    'login.title':       'Agente',
-    'login.subtitle':    'Gerencie seu assistente no WhatsApp',
-    'login.email':       'E-mail',
-    'login.password':    'Senha',
-    'login.btn':         'Entrar',
-    'overview.title':    'Visão Geral',
-    'overview.recent':   'Conversas recentes',
-    'overview.chart':    'Volume de conversas — últimos 7 dias',
-    'conversations.title':'Conversas',
-    'catalog.title':     'Catálogo',
-    'settings.title':       'Configurações',
-    'settings.soon':        'Em breve',
-    'settings.soon_sub':    'Personalizações de horário, tom de voz e integrações estarão aqui.',
-    'config.profile':       'Perfil do Negócio',
-    'config.biz_name':      'Nome do Negócio',
-    'config.email':         'E-mail de Contato',
-    'config.phone':         'Telefone (WhatsApp)',
-    'config.agent':         'Configurações do Agente IA',
-    'config.system_prompt': 'Prompt / Tom de Voz',
-    'config.prompt_hint':   'Descreva como o agente deve se comportar. Máx. 2000 caracteres.',
-    'config.ai_language':   'Idioma do Agente',
-    'config.lang_auto':     'Detectar automaticamente',
-    'config.lang_pt':       'Português',
-    'config.lang_en':       'English',
-    'config.hours':         'Horário de Atendimento',
-    'config.hours_open':    'Abertura',
-    'config.hours_close':   'Fechamento',
-    'config.day.mon':       'Seg',
-    'config.day.tue':       'Ter',
-    'config.day.wed':       'Qua',
-    'config.day.thu':       'Qui',
-    'config.day.fri':       'Sex',
-    'config.day.sat':       'Sáb',
-    'config.day.sun':       'Dom',
-    'config.integration':   'Integração',
-    'config.webhook_url':   'URL do Webhook (n8n)',
-    'config.copy':          'Copiar',
-    'config.copied':        'Copiado!',
-    'config.save':          'Salvar',
-    'config.saving':        'Salvando…',
-    'config.saved':         'Salvo com sucesso',
-    'config.save_error':    'Erro ao salvar',
-    'topbar.user':       'Móveis Viana',
-    'topbar.role':       'Administrador',
-    'select_conv':       'Selecione uma conversa',
+    'error.generic': 'Erro ao carregar dados.',
+    'btn.retry': 'Tentar novamente',
+    'btn.open': 'Abrir',
+    'btn.logout': 'Sair',
+    'btn.edit': 'Editar',
+    'btn.delete': 'Excluir',
+    'login.title': 'Agente',
+    'login.subtitle': 'Gerencie seu assistente no WhatsApp',
+    'login.email': 'E-mail',
+    'login.password': 'Senha',
+    'login.btn': 'Entrar',
+    'overview.title': 'Visão Geral',
+    'overview.recent': 'Conversas recentes',
+    'overview.chart': 'Volume de conversas — últimos 7 dias',
+    'conversations.title': 'Conversas',
+    'catalog.title': 'Catálogo',
+    'settings.title': 'Configurações',
+    'settings.soon': 'Em breve',
+    'settings.soon_sub': 'Personalizações de horário, tom de voz e integrações estarão aqui.',
+    'config.theme': 'Tema do Aplicativo',
+    'config.theme_default': 'Padrão (Ouro)',
+    'config.theme_soft_black': 'Preto Suave',
+    'config.theme_light_brown': 'Marrom Claro',
+    'config.account': 'Dados da Conta',
+    'config.biz_name': 'Nome do Negócio',
+    'config.biz_name_hint': 'Nome exibido no aplicativo',
+    'config.email': 'E-mail',
+    'config.save': 'Salvar',
+    'config.saving': 'Salvando…',
+    'config.saved': 'Salvo com sucesso',
+    'config.save_error': 'Erro ao salvar',
+    'config.danger': 'Zona de Perigo',
+    'config.delete_acct': 'Excluir conta',
+    'config.delete_warn': 'Esta ação é permanente e não pode ser desfeita.',
+    'config.delete_confirm': 'Confirmar exclusão',
+    'config.delete_cancel': 'Cancelar',
+    'topbar.user': 'Móveis Viana',
+    'topbar.role': 'Administrador',
+    'select_conv': 'Selecione uma conversa',
   },
   en: {
-    'nav.overview':      'Overview',
+    'nav.overview': 'Overview',
     'nav.conversations': 'Conversations',
-    'nav.catalog':       'Catalog',
-    'nav.settings':      'Settings',
+    'nav.catalog': 'Catalog',
+    'nav.settings': 'Settings',
     'kpi.conversations': 'Conversations today',
     'kpi.response_time': 'Response time',
-    'kpi.handoffs':      'Human handoffs',
-    'kpi.leads':         'Leads captured',
-    'kpi.via_ai':        'via AI',
-    'kpi.takeovers':     'takeovers today',
-    'kpi.qualified':     'qualified messages',
-    'kpi.vs_yesterday':  'vs. yesterday',
-    'table.client':      'Client',
-    'table.last_message':'Last message',
-    'table.status':      'Status',
-    'table.time':        'Time',
-    'table.action':      'Action',
-    'catalog.add':       'Add product',
-    'catalog.edit_title':'Edit product',
+    'kpi.handoffs': 'Human handoffs',
+    'kpi.leads': 'Leads captured',
+    'kpi.via_ai': 'via AI',
+    'kpi.takeovers': 'takeovers today',
+    'kpi.qualified': 'qualified messages',
+    'kpi.vs_yesterday': 'vs. yesterday',
+    'table.client': 'Client',
+    'table.last_message': 'Last message',
+    'table.status': 'Status',
+    'table.time': 'Time',
+    'table.action': 'Action',
+    'catalog.add': 'Add product',
+    'catalog.edit_title': 'Edit product',
     'catalog.add_title': 'New product',
-    'catalog.name':      'Name',
-    'catalog.category':  'Category',
-    'catalog.price':     'Price',
-    'catalog.stock':     'Stock',
-    'catalog.description':'Description',
-    'catalog.specs':     'Specifications',
-    'catalog.save':      'Save product',
-    'catalog.cancel':    'Cancel',
-    'catalog.col_num':   '#',
-    'catalog.col_name':  'Name',
-    'catalog.col_cat':   'Category',
+    'catalog.name': 'Name',
+    'catalog.category': 'Category',
+    'catalog.price': 'Price',
+    'catalog.stock': 'Stock',
+    'catalog.description': 'Description',
+    'catalog.specs': 'Specifications',
+    'catalog.save': 'Save product',
+    'catalog.cancel': 'Cancel',
+    'catalog.col_num': '#',
+    'catalog.col_name': 'Name',
+    'catalog.col_cat': 'Category',
     'catalog.col_price': 'Price',
     'catalog.col_stock': 'Stock',
-    'catalog.col_status':'Status',
-    'catalog.col_actions':'Actions',
+    'catalog.col_status': 'Status',
+    'catalog.col_actions': 'Actions',
     'catalog.desc_hint': 'Write detailed descriptions to improve AI search',
-    'status.active':     'Active',
-    'status.paused':     'Paused',
-    'status.inactive':   'Inactive',
-    'status.ai_on':      'AI active',
-    'status.ai_off':     'AI paused',
-    'empty.conversations':'No conversations yet.',
-    'empty.catalog':     'Catalog is empty. Add your first product.',
+    'status.active': 'Active',
+    'status.paused': 'Paused',
+    'status.inactive': 'Inactive',
+    'status.ai_on': 'AI active',
+    'status.ai_off': 'AI paused',
+    'empty.conversations': 'No conversations yet.',
+    'empty.catalog': 'Catalog is empty. Add your first product.',
     'empty.conv_select': 'Select a conversation to view',
-    'error.generic':     'Error loading data.',
-    'btn.retry':         'Retry',
-    'btn.open':          'Open',
-    'btn.logout':        'Logout',
-    'btn.edit':          'Edit',
-    'btn.delete':        'Delete',
-    'login.title':       'Agente',
-    'login.subtitle':    'Manage your WhatsApp AI assistant',
-    'login.email':       'Email',
-    'login.password':    'Password',
-    'login.btn':         'Sign in',
-    'overview.title':    'Overview',
-    'overview.recent':   'Recent conversations',
-    'overview.chart':    'Conversation volume — last 7 days',
-    'conversations.title':'Conversations',
-    'catalog.title':     'Catalog',
-    'settings.title':       'Settings',
-    'settings.soon':        'Coming soon',
-    'settings.soon_sub':    'Business hours, tone, and integrations will be configured here.',
-    'config.profile':       'Business Profile',
-    'config.biz_name':      'Business Name',
-    'config.email':         'Contact Email',
-    'config.phone':         'Phone (WhatsApp)',
-    'config.agent':         'AI Agent Settings',
-    'config.system_prompt': 'System Prompt / Tone',
-    'config.prompt_hint':   'Describe how the agent should behave. Max 2000 characters.',
-    'config.ai_language':   'Agent Language',
-    'config.lang_auto':     'Auto-detect',
-    'config.lang_pt':       'Português',
-    'config.lang_en':       'English',
-    'config.hours':         'Business Hours',
-    'config.hours_open':    'Open',
-    'config.hours_close':   'Close',
-    'config.day.mon':       'Mon',
-    'config.day.tue':       'Tue',
-    'config.day.wed':       'Wed',
-    'config.day.thu':       'Thu',
-    'config.day.fri':       'Fri',
-    'config.day.sat':       'Sat',
-    'config.day.sun':       'Sun',
-    'config.integration':   'Integration',
-    'config.webhook_url':   'Webhook URL (n8n)',
-    'config.copy':          'Copy',
-    'config.copied':        'Copied!',
-    'config.save':          'Save',
-    'config.saving':        'Saving…',
-    'config.saved':         'Saved successfully',
-    'config.save_error':    'Error saving',
-    'topbar.user':       'Viana Furniture',
-    'topbar.role':       'Administrator',
-    'select_conv':       'Select a conversation',
+    'error.generic': 'Error loading data.',
+    'btn.retry': 'Retry',
+    'btn.open': 'Open',
+    'btn.logout': 'Logout',
+    'btn.edit': 'Edit',
+    'btn.delete': 'Delete',
+    'login.title': 'Agente',
+    'login.subtitle': 'Manage your WhatsApp AI assistant',
+    'login.email': 'Email',
+    'login.password': 'Password',
+    'login.btn': 'Sign in',
+    'overview.title': 'Overview',
+    'overview.recent': 'Recent conversations',
+    'overview.chart': 'Conversation volume — last 7 days',
+    'conversations.title': 'Conversations',
+    'catalog.title': 'Catalog',
+    'settings.title': 'Settings',
+    'settings.soon': 'Coming soon',
+    'settings.soon_sub': 'Business hours, tone, and integrations will be configured here.',
+    'config.theme': 'App Theme',
+    'config.theme_default': 'Default (Gold)',
+    'config.theme_soft_black': 'Soft Black',
+    'config.theme_light_brown': 'Light Brown',
+    'config.account': 'Account Details',
+    'config.biz_name': 'Business Name',
+    'config.biz_name_hint': 'Name shown in application',
+    'config.email': 'Email',
+    'config.save': 'Save',
+    'config.saving': 'Saving…',
+    'config.saved': 'Saved successfully',
+    'config.save_error': 'Error saving',
+    'config.danger': 'Danger Zone',
+    'config.delete_acct': 'Delete account',
+    'config.delete_warn': 'This action is permanent and cannot be undone.',
+    'config.delete_confirm': 'Confirm deletion',
+    'config.delete_cancel': 'Cancel',
+    'topbar.user': 'Viana Furniture',
+    'topbar.role': 'Administrator',
+    'select_conv': 'Select a conversation',
   }
 };
 
@@ -226,14 +209,14 @@ function updateLangButtons() {
 // Edit this list to add, remove, or rename categories.
 // Each entry has a Portuguese canonical value (stored in the DB) and an English translation.
 const DEFAULT_CATEGORIES = [
-  { pt: 'Sofás e Poltronas',      en: 'Sofas & Armchairs'       },
-  { pt: 'Salas de Jantar',        en: 'Dining Room'             },
-  { pt: 'Quartos',                en: 'Bedroom'                 },
-  { pt: 'Salas de Estar',         en: 'Living Room'             },
-  { pt: 'Escritório',             en: 'Office'                  },
-  { pt: 'Área Externa',           en: 'Outdoor'                 },
-  { pt: 'Colchões',               en: 'Mattresses'              },
-  { pt: 'Acessórios e Decoração', en: 'Accessories & Decor'     },
+  { pt: 'Sofás e Poltronas', en: 'Sofas & Armchairs' },
+  { pt: 'Salas de Jantar', en: 'Dining Room' },
+  { pt: 'Quartos', en: 'Bedroom' },
+  { pt: 'Salas de Estar', en: 'Living Room' },
+  { pt: 'Escritório', en: 'Office' },
+  { pt: 'Área Externa', en: 'Outdoor' },
+  { pt: 'Colchões', en: 'Mattresses' },
+  { pt: 'Acessórios e Decoração', en: 'Accessories & Decor' },
 ];
 
 // Returns the display label for a category's PT canonical name in the current language.
@@ -291,9 +274,9 @@ const mockAPI = realAPI;
 function relTime(isoString) {
   if (!isoString) return '';
   const diff = Math.floor((Date.now() - new Date(isoString).getTime()) / 1000);
-  if (diff < 60)     return diff + 's';
-  if (diff < 3600)   return Math.floor(diff / 60) + 'min';
-  if (diff < 86400)  return Math.floor(diff / 3600) + 'h';
+  if (diff < 60) return diff + 's';
+  if (diff < 3600) return Math.floor(diff / 60) + 'min';
+  if (diff < 86400) return Math.floor(diff / 3600) + 'h';
   if (diff < 172800) return 'ontem';
   return Math.floor(diff / 86400) + 'd';
 }
@@ -308,16 +291,16 @@ function volume7dToChartData(volume7d) {
 
 function msgCssRole(role) {
   if (role === 'assistant') return 'ai';
-  if (role === 'owner')     return 'ai';
+  if (role === 'owner') return 'ai';
   return role;
 }
 
 /* ── ROUTER ───────────────────────────────────────────────── */
 const ROUTES = {
-  '#/overview':      renderOverview,
-  '#/conversas':     renderConversas,
-  '#/catalogo':      renderCatalogo,
-  '#/config':        renderConfig,
+  '#/overview': renderOverview,
+  '#/conversas': renderConversas,
+  '#/catalogo': renderCatalogo,
+  '#/config': renderConfig,
 };
 
 function navigate(hash) {
@@ -336,10 +319,10 @@ function router() {
 
   // Update topbar breadcrumb
   const pageNames = {
-    '#/overview':  t('nav.overview'),
+    '#/overview': t('nav.overview'),
     '#/conversas': t('nav.conversations'),
-    '#/catalogo':  t('nav.catalog'),
-    '#/config':    t('nav.settings'),
+    '#/catalogo': t('nav.catalog'),
+    '#/config': t('nav.settings'),
   };
   const titleEl = document.getElementById('page-title');
   if (titleEl) titleEl.textContent = pageNames[hash] || '';
@@ -356,18 +339,18 @@ function applyUserInfo(profile) {
   const initials = name.split(/\s+/).map(w => w[0]).join('').toUpperCase().slice(0, 2) || '?';
 
   const sidebarAvatar = document.querySelector('.sidebar-avatar');
-  const sidebarName   = document.querySelector('.sidebar-user-name');
+  const sidebarName = document.querySelector('.sidebar-user-name');
   if (sidebarAvatar) sidebarAvatar.textContent = initials;
-  if (sidebarName)   sidebarName.textContent   = name;
+  if (sidebarName) sidebarName.textContent = name;
 
   const topbarAvatar = document.getElementById('topbar-avatar');
   if (topbarAvatar) topbarAvatar.textContent = initials;
 
   const dropdown = document.getElementById('avatar-dropdown');
   if (dropdown) {
-    const nameEl  = dropdown.querySelector('.dropdown-user-name');
+    const nameEl = dropdown.querySelector('.dropdown-user-name');
     const emailEl = dropdown.querySelector('.dropdown-user-email');
-    if (nameEl)  nameEl.textContent  = name;
+    if (nameEl) nameEl.textContent = name;
     if (emailEl) emailEl.textContent = profile.email;
   }
 }
@@ -395,9 +378,9 @@ function skBlock(w = '100%', h = 80) {
 
 /* ── PILL HELPER ──────────────────────────────────────────── */
 function pill(status) {
-  if (status === 'active')   return `<span class="pill pill-active">${t('status.active')}</span>`;
-  if (status === 'paused')   return `<span class="pill pill-paused">${t('status.paused')}</span>`;
-  if (status === 'error')    return `<span class="pill pill-error">${t('status.paused')}</span>`;
+  if (status === 'active') return `<span class="pill pill-active">${t('status.active')}</span>`;
+  if (status === 'paused') return `<span class="pill pill-paused">${t('status.paused')}</span>`;
+  if (status === 'error') return `<span class="pill pill-error">${t('status.paused')}</span>`;
   if (status === 'inactive') return `<span class="pill pill-gray">${t('status.inactive')}</span>`;
   return `<span class="pill pill-gray">${status}</span>`;
 }
@@ -444,7 +427,7 @@ function renderOverview() {
         <h1 class="page-title-large font-display">${t('overview.title')}</h1>
       </div>
       <div class="kpi-strip" id="kpi-strip">
-        ${[0,1,2,3].map(() => `
+        ${[0, 1, 2, 3].map(() => `
           <div class="kpi-card">
             ${skLine('60%', 11, 12)}
             ${skBlock('55%', 44)}
@@ -462,7 +445,7 @@ function renderOverview() {
         <div class="flex items-center justify-between mb-16">
           <span class="font-display text-20">${t('overview.recent')}</span>
         </div>
-        ${[0,1,2,3,4].map(() => `
+        ${[0, 1, 2, 3, 4].map(() => `
           <div style="display:flex;gap:12px;padding:12px 0;border-bottom:1px solid var(--border)">
             ${skLine('18%', 14)} ${skLine('30%', 14)} ${skLine('12%', 14)} ${skLine('10%', 14)}
           </div>`).join('')}
@@ -474,8 +457,8 @@ function renderOverview() {
     const strip = document.getElementById('kpi-strip');
     if (!strip) return;
     const deltaClass = d => d > 0 ? 'positive' : d < 0 ? 'negative' : 'neutral';
-    const deltaIcon  = d => d > 0 ? '▲' : d < 0 ? '▼' : '—';
-    const respTime   = stats.avg_response_time_s != null
+    const deltaIcon = d => d > 0 ? '▲' : d < 0 ? '▼' : '—';
+    const respTime = stats.avg_response_time_s != null
       ? stats.avg_response_time_s.toFixed(1) + 's' : '—';
     strip.innerHTML = `
       <div class="kpi-card">
@@ -594,7 +577,7 @@ function buildChart(data) {
 
   // area fill path
   const areaD = pathD
-    + ` L ${points[points.length-1].x.toFixed(1)} ${(H - pad.bottom).toFixed(1)}`
+    + ` L ${points[points.length - 1].x.toFixed(1)} ${(H - pad.bottom).toFixed(1)}`
     + ` L ${points[0].x.toFixed(1)} ${(H - pad.bottom).toFixed(1)} Z`;
 
   const labels = points.map(p => `
@@ -663,7 +646,7 @@ function renderConversas() {
       <div class="conversations-layout">
         <div class="conv-list" id="conv-list">
           <div class="conv-list-header">${t('conversations.title')}</div>
-          ${[0,1,2,3,4].map(() => `
+          ${[0, 1, 2, 3, 4].map(() => `
             <div style="padding:14px 20px;border-bottom:1px solid var(--border)">
               ${skLine('55%', 14, 6)}${skLine('85%', 12, 4)}${skLine('70%', 12)}
             </div>`).join('')}
@@ -821,7 +804,7 @@ function renderCatalogo() {
         </button>
       </div>
       <div class="card" id="catalog-table-wrap">
-        ${[0,1,2,3,4].map(() => `
+        ${[0, 1, 2, 3, 4].map(() => `
           <div style="display:flex;gap:12px;padding:14px 0;border-bottom:1px solid var(--border)">
             ${skLine('4%', 14)} ${skLine('22%', 14)} ${skLine('14%', 14)}
             ${skLine('10%', 14)} ${skLine('8%', 14)} ${skLine('10%', 14)}
@@ -949,10 +932,10 @@ function renderProductTable(products) {
 
 function wireDrawer() {
   const backdrop = document.getElementById('drawer-backdrop');
-  const addBtn   = document.getElementById('add-product-btn');
+  const addBtn = document.getElementById('add-product-btn');
   const closeBtn = document.getElementById('drawer-close');
-  const cancelBtn= document.getElementById('drawer-cancel');
-  const saveBtn  = document.getElementById('drawer-save');
+  const cancelBtn = document.getElementById('drawer-cancel');
+  const saveBtn = document.getElementById('drawer-save');
 
   addBtn?.addEventListener('click', openDrawer);
   closeBtn?.addEventListener('click', closeDrawer);
@@ -1003,24 +986,24 @@ function openDrawer() {
 
 window.openDrawer = openDrawer;
 
-window.openEditDrawer = function(id) {
+window.openEditDrawer = function (id) {
   const product = _products.find(p => p.id === id);
   if (!product) return;
   drawerMode = 'edit';
   editingProductId = id;
   const title = document.getElementById('drawer-title');
   if (title) title.textContent = t('catalog.edit_title');
-  document.getElementById('f-name').value        = product.name || '';
-  document.getElementById('f-category').value    = product.category || '';
-  document.getElementById('f-price').value       = product.price || '';
-  document.getElementById('f-stock').value       = product.quantity || '';
+  document.getElementById('f-name').value = product.name || '';
+  document.getElementById('f-category').value = product.category || '';
+  document.getElementById('f-price').value = product.price || '';
+  document.getElementById('f-stock').value = product.quantity || '';
   document.getElementById('f-description').value = product.description || '';
-  document.getElementById('f-specs').value       = product.specs || '';
+  document.getElementById('f-specs').value = product.specs || '';
   document.getElementById('drawer-backdrop')?.classList.add('open');
   document.getElementById('product-drawer')?.classList.add('open');
 };
 
-window.deleteProduct = function(id) {
+window.deleteProduct = function (id) {
   if (!confirm('Excluir este produto?')) return;
   mockAPI(`/api/products/${id}`, { method: 'DELETE' }).then(() => loadCatalogData());
 };
@@ -1033,9 +1016,8 @@ function closeDrawer() {
 }
 
 /* ── CONFIG PAGE ──────────────────────────────────────────── */
-/* ── CONFIG PAGE RENDERERS ────────────────────────────────── */
 
-function _configSectionCard(title, bodyHtml, footerHtml = '') {
+function _configCard(title, bodyHtml, footerHtml = '') {
   return `
     <div class="card mb-24">
       <div class="config-section-header">
@@ -1047,204 +1029,117 @@ function _configSectionCard(title, bodyHtml, footerHtml = '') {
     </div>`;
 }
 
-function _configSaveBtn(id) {
-  return `<button class="btn-primary" id="${id}">${t('config.save')}</button>`;
-}
-
-function renderConfigProfile(profile) {
+function renderConfigAccount(profile) {
   const body = `
     <div class="config-field-row">
-      <div class="config-field-label">${t('config.biz_name')}</div>
-      <div><input class="form-input" id="cfg-biz-name" type="text" value="${escapeHtml(profile.business_name || '')}"></div>
+      <div>
+        <div class="config-field-label">${t('config.biz_name')}</div>
+        <div class="config-field-hint">${t('config.biz_name_hint')}</div>
+      </div>
+      <input class="form-input" id="cfg-biz-name" type="text" value="${escapeHtml(profile.business_name || '')}">
     </div>
     <div class="config-field-row">
       <div class="config-field-label">${t('config.email')}</div>
-      <div class="config-field-value">${escapeHtml(profile.email)}</div>
-    </div>
-    <div class="config-field-row">
-      <div class="config-field-label">${t('config.phone')}</div>
-      <div class="config-field-value">${escapeHtml(profile.business_phone)}</div>
+      <input class="form-input" id="cfg-email" type="email" value="${escapeHtml(profile.email || '')}">
     </div>`;
-  return _configSectionCard(t('config.profile'), body, _configSaveBtn('cfg-profile-save'));
+  const footer = `<button class="btn-primary" id="cfg-account-save">${t('config.save')}</button>`;
+  return _configCard(t('config.account'), body, footer);
 }
 
-function renderConfigAgent(settings) {
-  const prompt = settings.system_prompt || '';
-  const lang = settings.ai_language || 'auto';
+function renderConfigTheme() {
+  const currentTheme = localStorage.getItem('agente_theme') || 'default';
   const body = `
     <div class="config-field-row">
       <div>
-        <div class="config-field-label">${t('config.system_prompt')}</div>
-        <div class="config-field-hint">${t('config.prompt_hint')}</div>
+        <div class="config-field-label">${t('config.theme')}</div>
       </div>
-      <div>
-        <textarea class="form-input" id="cfg-system-prompt" maxlength="2000" rows="6">${escapeHtml(prompt)}</textarea>
-        <div class="config-char-count"><span id="cfg-prompt-count">${prompt.length}</span> / 2000</div>
-      </div>
-    </div>
-    <div class="config-field-row">
-      <div class="config-field-label">${t('config.ai_language')}</div>
-      <div>
-        <select class="form-input" id="cfg-ai-language">
-          <option value="auto"${lang === 'auto' ? ' selected' : ''}>${t('config.lang_auto')}</option>
-          <option value="pt"${lang === 'pt' ? ' selected' : ''}>${t('config.lang_pt')}</option>
-          <option value="en"${lang === 'en' ? ' selected' : ''}>${t('config.lang_en')}</option>
-        </select>
-      </div>
+      <select class="form-select" id="cfg-theme" style="width:200px">
+        <option value="default" ${currentTheme === 'default' ? 'selected' : ''}>${t('config.theme_default')}</option>
+        <option value="soft-black" ${currentTheme === 'soft-black' ? 'selected' : ''}>${t('config.theme_soft_black')}</option>
+        <option value="light-brown" ${currentTheme === 'light-brown' ? 'selected' : ''}>${t('config.theme_light_brown')}</option>
+      </select>
     </div>`;
-  return _configSectionCard(t('config.agent'), body, _configSaveBtn('cfg-agent-save'));
+  return _configCard(t('config.theme'), body);
 }
 
-function renderConfigHours(hours) {
-  const days = ['mon', 'tue', 'wed', 'thu', 'fri', 'sat', 'sun'];
-  const rows = days.map(d => {
-    const day = hours[d] || { enabled: false, open: '09:00', close: '18:00' };
-    const disabled = day.enabled ? '' : ' disabled';
-    return `
-      <div class="config-hours-row">
-        <label class="toggle-wrap">
-          <input type="checkbox" class="hours-day-toggle" data-day="${d}"${day.enabled ? ' checked' : ''}>
-          <span class="toggle-track"><span class="toggle-thumb"></span></span>
-        </label>
-        <span class="config-hours-day">${t('config.day.' + d)}</span>
-        <input type="time" class="form-input" data-day="${d}" data-field="open" value="${day.open}"${disabled}>
-        <input type="time" class="form-input" data-day="${d}" data-field="close" value="${day.close}"${disabled}>
-      </div>`;
-  }).join('');
-  const body = `<div class="config-hours-grid">${rows}</div>`;
-  return _configSectionCard(t('config.hours'), body, _configSaveBtn('cfg-hours-save'));
-}
-
-function renderConfigIntegration(profile) {
-  const webhookUrl = `https://your-n8n-instance.com/webhook/whatsapp/${encodeURIComponent(profile.business_phone)}`;
+function renderConfigDanger() {
   const body = `
-    <div class="config-field-row">
-      <div class="config-field-label">${t('config.phone')}</div>
-      <div class="config-copy-row">
-        <span class="config-copy-value">${escapeHtml(profile.business_phone)}</span>
-        <button class="btn-outline" data-copy="${escapeHtml(profile.business_phone)}" id="copy-phone">${t('config.copy')}</button>
-      </div>
-    </div>
-    <div class="config-field-row">
-      <div class="config-field-label">${t('config.webhook_url')}</div>
-      <div class="config-copy-row">
-        <span class="config-copy-value" title="${escapeHtml(webhookUrl)}">${escapeHtml(webhookUrl)}</span>
-        <button class="btn-outline" data-copy="${escapeHtml(webhookUrl)}" id="copy-webhook">${t('config.copy')}</button>
-      </div>
+    <p class="danger-zone-warn">${t('config.delete_warn')}</p>
+    <div id="cfg-delete-area">
+      <button class="btn-delete" id="cfg-delete-btn">${t('config.delete_acct')}</button>
     </div>`;
-  return _configSectionCard(t('config.integration'), body);
+  return _configCard(t('config.danger'), body);
 }
 
-function _collectHours() {
-  const days = ['mon', 'tue', 'wed', 'thu', 'fri', 'sat', 'sun'];
-  const hours = {};
-  days.forEach(d => {
-    const toggle = document.querySelector(`.hours-day-toggle[data-day="${d}"]`);
-    const open   = document.querySelector(`input[data-day="${d}"][data-field="open"]`);
-    const close  = document.querySelector(`input[data-day="${d}"][data-field="close"]`);
-    hours[d] = {
-      enabled: toggle ? toggle.checked : false,
-      open:    open   ? open.value   : '09:00',
-      close:   close  ? close.value  : '18:00',
-    };
-  });
-  return hours;
-}
-
-function wireConfigSections(profile, settings) {
-  // Live char counter for system prompt
-  const promptEl = document.getElementById('cfg-system-prompt');
-  const countEl  = document.getElementById('cfg-prompt-count');
-  if (promptEl && countEl) {
-    promptEl.addEventListener('input', () => { countEl.textContent = promptEl.value.length; });
-  }
-
-  // Day toggle → enable/disable time inputs
-  document.querySelectorAll('.hours-day-toggle').forEach(toggle => {
-    toggle.addEventListener('change', () => {
-      const day = toggle.dataset.day;
-      document.querySelectorAll(`input[data-day="${day}"][data-field]`).forEach(inp => {
-        inp.disabled = !toggle.checked;
-      });
-    });
-  });
-
-  // Copy buttons
-  document.querySelectorAll('[data-copy]').forEach(btn => {
-    btn.addEventListener('click', () => {
-      navigator.clipboard.writeText(btn.dataset.copy).then(() => {
-        const orig = btn.textContent;
-        btn.textContent = t('config.copied');
-        setTimeout(() => { btn.textContent = orig; }, 1800);
-      });
-    });
-  });
-
-  // Profile save
-  const profileBtn = document.getElementById('cfg-profile-save');
-  if (profileBtn) {
-    profileBtn.addEventListener('click', async () => {
-      const bizName = document.getElementById('cfg-biz-name')?.value || '';
-      profileBtn.disabled = true;
-      profileBtn.textContent = t('config.saving');
+function wireConfigAccount(profile) {
+  // Account save
+  const saveBtn = document.getElementById('cfg-account-save');
+  if (saveBtn) {
+    saveBtn.addEventListener('click', async () => {
+      saveBtn.disabled = true;
+      saveBtn.textContent = t('config.saving');
       try {
-        await mockAPI('/api/profile', { method: 'PUT', body: { business_name: bizName } });
+        const updated = await realAPI('/api/profile', {
+          method: 'PUT',
+          body: {
+            business_name: document.getElementById('cfg-biz-name')?.value || null,
+            email: document.getElementById('cfg-email')?.value || null,
+          },
+        });
+        applyUserInfo(updated);
         showToast(t('config.saved'));
-      } catch {
-        showToast(t('config.save_error'), 'error');
+      } catch (err) {
+        const msg = err.message || '';
+        showToast(msg.includes('409') || msg.includes('already') ? (currentLang === 'pt' ? 'E-mail já em uso' : 'Email already in use') : t('config.save_error'), 'error');
       } finally {
-        profileBtn.disabled = false;
-        profileBtn.textContent = t('config.save');
+        saveBtn.disabled = false;
+        saveBtn.textContent = t('config.save');
       }
     });
   }
 
-  // Agent save (also sends current hours so we don't clobber them)
-  const agentBtn = document.getElementById('cfg-agent-save');
-  if (agentBtn) {
-    agentBtn.addEventListener('click', async () => {
-      agentBtn.disabled = true;
-      agentBtn.textContent = t('config.saving');
-      try {
-        await mockAPI('/api/settings', {
-          method: 'PUT',
-          body: {
-            system_prompt: document.getElementById('cfg-system-prompt')?.value || null,
-            ai_language:   document.getElementById('cfg-ai-language')?.value || 'auto',
-            business_hours: _collectHours(),
-          },
-        });
-        showToast(t('config.saved'));
-      } catch {
-        showToast(t('config.save_error'), 'error');
-      } finally {
-        agentBtn.disabled = false;
-        agentBtn.textContent = t('config.save');
-      }
+  // Delete account — two-step confirmation
+  const deleteBtn = document.getElementById('cfg-delete-btn');
+  if (deleteBtn) {
+    deleteBtn.addEventListener('click', () => {
+      const area = document.getElementById('cfg-delete-area');
+      if (!area) return;
+      area.innerHTML = `
+        <div class="danger-zone-confirm">
+          <button class="btn-delete" id="cfg-delete-confirm">${t('config.delete_confirm')}</button>
+          <button class="btn-ghost" id="cfg-delete-cancel">${t('config.delete_cancel')}</button>
+        </div>`;
+      document.getElementById('cfg-delete-cancel')?.addEventListener('click', () => {
+        area.innerHTML = `<button class="btn-delete" id="cfg-delete-btn">${t('config.delete_acct')}</button>`;
+        wireConfigAccount(profile);
+      });
+      document.getElementById('cfg-delete-confirm')?.addEventListener('click', async () => {
+        const confirmBtn = document.getElementById('cfg-delete-confirm');
+        if (confirmBtn) { confirmBtn.disabled = true; confirmBtn.textContent = t('config.saving'); }
+        try {
+          await realAPI('/api/account', { method: 'DELETE' });
+          localStorage.removeItem('agente_token');
+          window.location.href = '/login';
+        } catch {
+          showToast(t('config.save_error'), 'error');
+          area.innerHTML = `<button class="btn-delete" id="cfg-delete-btn">${t('config.delete_acct')}</button>`;
+          wireConfigAccount(profile);
+        }
+      });
     });
   }
+}
 
-  // Hours save (also sends current agent settings so we don't clobber them)
-  const hoursBtn = document.getElementById('cfg-hours-save');
-  if (hoursBtn) {
-    hoursBtn.addEventListener('click', async () => {
-      hoursBtn.disabled = true;
-      hoursBtn.textContent = t('config.saving');
-      try {
-        await mockAPI('/api/settings', {
-          method: 'PUT',
-          body: {
-            system_prompt:  document.getElementById('cfg-system-prompt')?.value || null,
-            ai_language:    document.getElementById('cfg-ai-language')?.value || 'auto',
-            business_hours: _collectHours(),
-          },
-        });
-        showToast(t('config.saved'));
-      } catch {
-        showToast(t('config.save_error'), 'error');
-      } finally {
-        hoursBtn.disabled = false;
-        hoursBtn.textContent = t('config.save');
+function wireConfigTheme() {
+  const select = document.getElementById('cfg-theme');
+  if (select) {
+    select.addEventListener('change', (e) => {
+      const theme = e.target.value;
+      localStorage.setItem('agente_theme', theme);
+      if (theme === 'default') {
+        document.documentElement.removeAttribute('data-theme');
+      } else {
+        document.documentElement.setAttribute('data-theme', theme);
       }
     });
   }
@@ -1252,12 +1147,12 @@ function wireConfigSections(profile, settings) {
 
 function renderConfig() {
   const main = document.getElementById('main');
-  const skeleton = [0, 1, 2, 3].map(() => `
+  const skeleton = `
     <div class="card mb-24">
       ${skLine('35%', 16, 12)}${skLine('100%', 1, 20)}
       ${skLine('45%', 13, 10)}${skLine('65%', 36, 14)}
       ${skLine('45%', 13, 10)}${skLine('65%', 36, 14)}
-    </div>`).join('');
+    </div>`;
 
   main.innerHTML = `
     <div class="page-section">
@@ -1267,14 +1162,12 @@ function renderConfig() {
       <div id="config-content">${skeleton}</div>
     </div>`;
 
-  Promise.all([mockAPI('/api/profile'), mockAPI('/api/settings')])
-    .then(([profile, settings]) => {
+  realAPI('/api/profile')
+    .then(profile => {
       document.getElementById('config-content').innerHTML =
-        renderConfigProfile(profile) +
-        renderConfigAgent(settings) +
-        renderConfigHours(settings.business_hours) +
-        renderConfigIntegration(profile);
-      wireConfigSections(profile, settings);
+        renderConfigAccount(profile) + renderConfigTheme() + renderConfigDanger();
+      wireConfigAccount(profile);
+      wireConfigTheme();
     })
     .catch(() => {
       const el = document.getElementById('config-content');
@@ -1298,14 +1191,14 @@ document.addEventListener('DOMContentLoaded', () => {
   router();
 
   // Fetch real user info and populate sidebar/topbar
-  realAPI('/api/profile').then(applyUserInfo).catch(() => {});
+  realAPI('/api/profile').then(applyUserInfo).catch(() => { });
 
   // Hash routing
   window.addEventListener('hashchange', router);
 
   // Topbar avatar dropdown
   const avatarBtn = document.getElementById('topbar-avatar');
-  const dropdown  = document.getElementById('avatar-dropdown');
+  const dropdown = document.getElementById('avatar-dropdown');
   avatarBtn?.addEventListener('click', (e) => {
     e.stopPropagation();
     dropdown?.classList.toggle('open');
