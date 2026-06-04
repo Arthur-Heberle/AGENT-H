@@ -63,14 +63,28 @@
 
         <div class="nav-divider"></div>
 
-        <div class="nav-item" data-route="#/config" onclick="navigate('#/config')">
-          <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"
-            stroke-linejoin="round">
-            <circle cx="10" cy="10" r="2.5" />
-            <path
-              d="M10 2v2M10 16v2M2 10h2M16 10h2M4.22 4.22l1.42 1.42M14.36 14.36l1.42 1.42M4.22 15.78l1.42-1.42M14.36 5.64l1.42-1.42" />
-          </svg>
-          <span data-i18n="nav.settings">Configurações</span>
+        <div class="nav-group" id="nav-group-config">
+          <div class="nav-item nav-parent" data-group="config" onclick="toggleNavGroup('config')">
+            <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"
+              stroke-linejoin="round">
+              <circle cx="10" cy="10" r="2.5" />
+              <path
+                d="M10 2v2M10 16v2M2 10h2M16 10h2M4.22 4.22l1.42 1.42M14.36 14.36l1.42 1.42M4.22 15.78l1.42-1.42M14.36 5.64l1.42-1.42" />
+            </svg>
+            <span data-i18n="nav.settings">Configurações</span>
+            <svg class="nav-arrow" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8"
+              stroke-linecap="round" stroke-linejoin="round">
+              <path d="M6 4l4 4-4 4" />
+            </svg>
+          </div>
+          <div class="nav-children" id="nav-children-config">
+            <div class="nav-sub-item" data-route="#/config/general" onclick="navigate('#/config/general')">
+              <span data-i18n="nav.config_general">Geral</span>
+            </div>
+            <div class="nav-sub-item" data-route="#/config/theme" onclick="navigate('#/config/theme')">
+              <span data-i18n="nav.config_theme">Tema do Aplicativo</span>
+            </div>
+          </div>
         </div>
       </nav>
 

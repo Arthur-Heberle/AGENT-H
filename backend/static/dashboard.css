@@ -201,6 +201,63 @@ input, textarea, select { font-family: inherit; }
   margin: 8px 24px;
 }
 
+/* ── NAV GROUP (collapsible sub-nav) ─────────────────────── */
+.nav-parent {
+  justify-content: space-between;
+}
+
+.nav-arrow {
+  width: 14px;
+  height: 14px;
+  flex-shrink: 0;
+  opacity: 0.45;
+  transition: transform 0.2s ease, opacity 0.2s ease;
+  margin-left: auto;
+}
+
+.nav-group[data-open] .nav-arrow {
+  transform: rotate(90deg);
+  opacity: 0.8;
+}
+
+.nav-children {
+  overflow: hidden;
+  max-height: 0;
+  transition: max-height 0.25s ease;
+}
+
+.nav-group[data-open] .nav-children {
+  max-height: 120px;
+}
+
+.nav-sub-item {
+  display: flex;
+  align-items: center;
+  padding: 8px 24px 8px 56px;
+  color: var(--sidebar-text);
+  font-size: 13px;
+  font-weight: 400;
+  cursor: pointer;
+  transition: all 150ms ease;
+  border-left: 3px solid transparent;
+  opacity: 0.7;
+  user-select: none;
+}
+
+.nav-sub-item:hover {
+  background: rgba(255,255,255,0.04);
+  color: #F0EAD6;
+  opacity: 1;
+}
+
+.nav-sub-item.active {
+  border-left-color: var(--sidebar-active);
+  color: var(--sidebar-active);
+  background: rgba(201,168,76,0.08);
+  font-weight: 500;
+  opacity: 1;
+}
+
 .sidebar-footer {
   padding: 16px 24px 24px;
   border-top: 1px solid rgba(255,255,255,0.06);
@@ -961,6 +1018,30 @@ th.num-center {
   align-items: center;
   justify-content: space-between;
   margin-bottom: 24px;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.catalog-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.catalog-filters {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.catalog-filters .form-input,
+.catalog-filters .form-select {
+  height: 38px;
+  padding-top: 0;
+  padding-bottom: 0;
+  font-size: 13px;
 }
 
 /* ── DRAWER ──────────────────────────────────────────────── */

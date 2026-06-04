@@ -37,6 +37,8 @@ const i18n = {
     'catalog.add_title': 'Novo produto',
     'catalog.name': 'Nome',
     'catalog.category': 'Categoria',
+    'catalog.custom_category': 'Outra categoria',
+    'catalog.custom_category_placeholder': 'Digite a categoria…',
     'catalog.price': 'Preço',
     'catalog.stock': 'Estoque',
     'catalog.description': 'Descrição',
@@ -51,6 +53,9 @@ const i18n = {
     'catalog.col_status': 'Status',
     'catalog.col_actions': 'Ações',
     'catalog.desc_hint': 'Escreva descrições detalhadas para melhorar a busca por IA',
+    'catalog.filter_name': 'Buscar por nome…',
+    'catalog.filter_all_cats': 'Todas as categorias',
+    'catalog.no_results': 'Nenhum produto encontrado.',
     'status.active': 'Ativo',
     'status.paused': 'Pausado',
     'status.inactive': 'Inativo',
@@ -78,6 +83,8 @@ const i18n = {
     'settings.title': 'Configurações',
     'settings.soon': 'Em breve',
     'settings.soon_sub': 'Personalizações de horário, tom de voz e integrações estarão aqui.',
+    'nav.config_general': 'Geral',
+    'nav.config_theme': 'Tema do Aplicativo',
     'config.theme': 'Tema do Aplicativo',
     'config.theme_default': 'Padrão (Ouro)',
     'config.theme_soft_black': 'Preto Suave',
@@ -122,6 +129,8 @@ const i18n = {
     'catalog.add_title': 'New product',
     'catalog.name': 'Name',
     'catalog.category': 'Category',
+    'catalog.custom_category': 'Other category',
+    'catalog.custom_category_placeholder': 'Enter category…',
     'catalog.price': 'Price',
     'catalog.stock': 'Stock',
     'catalog.description': 'Description',
@@ -136,6 +145,9 @@ const i18n = {
     'catalog.col_status': 'Status',
     'catalog.col_actions': 'Actions',
     'catalog.desc_hint': 'Write detailed descriptions to improve AI search',
+    'catalog.filter_name': 'Search by name…',
+    'catalog.filter_all_cats': 'All categories',
+    'catalog.no_results': 'No products found.',
     'status.active': 'Active',
     'status.paused': 'Paused',
     'status.inactive': 'Inactive',
@@ -163,6 +175,8 @@ const i18n = {
     'settings.title': 'Settings',
     'settings.soon': 'Coming soon',
     'settings.soon_sub': 'Business hours, tone, and integrations will be configured here.',
+    'nav.config_general': 'General',
+    'nav.config_theme': 'Application Theme',
     'config.theme': 'App Theme',
     'config.theme_default': 'Default (Gold)',
     'config.theme_soft_black': 'Soft Black',
@@ -229,13 +243,35 @@ function tCat(ptName) {
 // Builds the <option> list for the category select.
 function categoryOptions(selected) {
   const placeholder = currentLang === 'en' ? 'Select a category…' : 'Selecione uma categoria…';
+  const isCustom = selected && !DEFAULT_CATEGORIES.find(c => c.pt === selected);
   const opts = DEFAULT_CATEGORIES.map(c => {
     const label = currentLang === 'en' ? c.en : c.pt;
     const isSelected = selected === c.pt ? ' selected' : '';
     return `<option value="${escapeHtml(c.pt)}"${isSelected}>${escapeHtml(label)}</option>`;
   }).join('');
   const blankSelected = selected ? '' : ' selected';
-  return `<option value=""${blankSelected} disabled>${escapeHtml(placeholder)}</option>${opts}`;
+  const customLabel = t('catalog.custom_category');
+  const customSel = isCustom ? ' selected' : '';
+  return `<option value=""${blankSelected} disabled>${escapeHtml(placeholder)}</option>${opts}<option value="__custom__"${customSel}>${escapeHtml(customLabel)}</option>`;
+}
+
+function onCategoryChange() {
+  const sel = document.getElementById('f-category');
+  const inp = document.getElementById('f-category-custom');
+  if (!sel || !inp) return;
+  const isCustom = sel.value === '__custom__';
+  inp.style.display = isCustom ? 'block' : 'none';
+  if (isCustom) inp.focus();
+}
+
+// Builds the <option> list for the category filter (includes "All categories" first).
+function filterCategoryOptions() {
+  const all = escapeHtml(t('catalog.filter_all_cats'));
+  const opts = DEFAULT_CATEGORIES.map(c => {
+    const label = currentLang === 'en' ? c.en : c.pt;
+    return `<option value="${escapeHtml(c.pt)}">${escapeHtml(label)}</option>`;
+  }).join('');
+  return `<option value="">${all}</option>${opts}`;
 }
 
 /* ── XSS ESCAPE ──────────────────────────────────────────── */
@@ -300,7 +336,12 @@ const ROUTES = {
   '#/overview': renderOverview,
   '#/conversas': renderConversas,
   '#/catalogo': renderCatalogo,
-  '#/config': renderConfig,
+  '#/config': function() {
+    history.replaceState(null, '', '#/config/general');
+    router();
+  },
+  '#/config/general': renderConfigGeneral,
+  '#/config/theme': renderConfigThemeSection,
 };
 
 function navigate(hash) {
@@ -308,21 +349,42 @@ function navigate(hash) {
   router();
 }
 
+function toggleNavGroup(group) {
+  const el = document.getElementById('nav-group-' + group);
+  if (el) el.toggleAttribute('data-open');
+}
+
 function router() {
   const hash = location.hash || '#/overview';
   const render = ROUTES[hash] || renderOverview;
 
-  // Update sidebar active states
+  // Update top-level nav-item active states
   document.querySelectorAll('.nav-item').forEach(item => {
     item.classList.toggle('active', item.dataset.route === hash);
   });
+
+  // Update sub-item active states
+  document.querySelectorAll('.nav-sub-item').forEach(item => {
+    item.classList.toggle('active', item.dataset.route === hash);
+  });
+
+  // Auto-expand config group and mark parent active when on any config sub-route
+  const configGroup = document.getElementById('nav-group-config');
+  const configParent = document.querySelector('.nav-parent[data-group="config"]');
+  if (hash.startsWith('#/config')) {
+    if (configGroup) configGroup.setAttribute('data-open', '');
+    if (configParent) configParent.classList.add('active');
+  } else {
+    if (configParent) configParent.classList.remove('active');
+  }
 
   // Update topbar breadcrumb
   const pageNames = {
     '#/overview': t('nav.overview'),
     '#/conversas': t('nav.conversations'),
     '#/catalogo': t('nav.catalog'),
-    '#/config': t('nav.settings'),
+    '#/config/general': t('nav.config_general'),
+    '#/config/theme': t('nav.config_theme'),
   };
   const titleEl = document.getElementById('page-title');
   if (titleEl) titleEl.textContent = pageNames[hash] || '';
@@ -796,12 +858,25 @@ function renderCatalogo() {
     <div class="page-section">
       <div class="catalog-header">
         <h1 class="page-title-large font-display">${t('catalog.title')}</h1>
-        <button class="btn btn-outline" id="add-product-btn">
-          <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-            <path d="M8 3v10M3 8h10" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
-          </svg>
-          ${t('catalog.add')}
-        </button>
+        <div class="catalog-header-actions">
+          <div class="catalog-filters">
+            <input type="text" class="form-input" id="filter-name" style="width:180px"
+              placeholder="${t('catalog.filter_name')}" oninput="applyFilters()" autocomplete="off">
+            <select class="form-select" id="filter-category" style="width:170px" onchange="applyFilters()">
+              ${filterCategoryOptions()}
+            </select>
+            <input type="number" class="form-input" id="filter-price-min" style="width:105px"
+              placeholder="Min R$" min="0" step="0.01" oninput="applyFilters()">
+            <input type="number" class="form-input" id="filter-price-max" style="width:105px"
+              placeholder="Max R$" min="0" step="0.01" oninput="applyFilters()">
+          </div>
+          <button class="btn btn-outline" id="add-product-btn">
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+              <path d="M8 3v10M3 8h10" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+            </svg>
+            ${t('catalog.add')}
+          </button>
+        </div>
       </div>
       <div class="card" id="catalog-table-wrap">
         ${[0, 1, 2, 3, 4].map(() => `
@@ -831,9 +906,12 @@ function renderCatalogo() {
           <div class="form-row">
             <div class="form-group">
               <label class="form-label">${t('catalog.category')}</label>
-              <select class="form-select" id="f-category">
+              <select class="form-select" id="f-category" onchange="onCategoryChange()">
                 ${categoryOptions('')}
               </select>
+              <input type="text" class="form-input" id="f-category-custom"
+                     placeholder="${escapeHtml(t('catalog.custom_category_placeholder'))}"
+                     style="margin-top:8px;display:none"/>
             </div>
             <div class="form-group">
               <label class="form-label">${t('catalog.price')} (R$)</label>
@@ -878,12 +956,16 @@ function loadCatalogData() {
   });
 }
 
-function renderProductTable(products) {
+function renderProductTable(products, isFiltered = false) {
   const wrap = document.getElementById('catalog-table-wrap');
   if (!wrap) return;
 
   if (!products.length) {
-    wrap.innerHTML = emptyState('grid', t('empty.catalog'), t('catalog.add'), 'openDrawer()');
+    if (isFiltered) {
+      wrap.innerHTML = `<div class="empty-state"><p style="color:var(--text-secondary);font-size:14px">${t('catalog.no_results')}</p></div>`;
+    } else {
+      wrap.innerHTML = emptyState('grid', t('empty.catalog'), t('catalog.add'), 'openDrawer()');
+    }
     return;
   }
 
@@ -930,6 +1012,24 @@ function renderProductTable(products) {
     </div>`;
 }
 
+function applyFilters() {
+  const name = (document.getElementById('filter-name')?.value || '').toLowerCase().trim();
+  const cat  = document.getElementById('filter-category')?.value || '';
+  const min  = parseFloat(document.getElementById('filter-price-min')?.value);
+  const max  = parseFloat(document.getElementById('filter-price-max')?.value);
+
+  const filtered = _products.filter(p => {
+    if (name && !p.name.toLowerCase().includes(name)) return false;
+    if (cat  && p.category !== cat) return false;
+    if (!isNaN(min) && (p.price || 0) < min) return false;
+    if (!isNaN(max) && (p.price || 0) > max) return false;
+    return true;
+  });
+
+  const anyActive = !!(name || cat || !isNaN(min) || !isNaN(max));
+  renderProductTable(filtered, anyActive);
+}
+
 function wireDrawer() {
   const backdrop = document.getElementById('drawer-backdrop');
   const addBtn = document.getElementById('add-product-btn');
@@ -948,7 +1048,7 @@ function wireDrawer() {
 
     const payload = {
       name,
-      category: document.getElementById('f-category')?.value.trim() || '',
+      category: (() => { const s = document.getElementById('f-category')?.value || ''; return s === '__custom__' ? (document.getElementById('f-category-custom')?.value.trim() || '') : s; })(),
       price: parseFloat(document.getElementById('f-price')?.value) || 0,
       quantity: parseInt(document.getElementById('f-stock')?.value) || 0,
       description: document.getElementById('f-description')?.value.trim() || '',
@@ -994,7 +1094,15 @@ window.openEditDrawer = function (id) {
   const title = document.getElementById('drawer-title');
   if (title) title.textContent = t('catalog.edit_title');
   document.getElementById('f-name').value = product.name || '';
-  document.getElementById('f-category').value = product.category || '';
+  const _knownCat = DEFAULT_CATEGORIES.find(c => c.pt === product.category);
+  const _customInp = document.getElementById('f-category-custom');
+  if (!_knownCat && product.category) {
+    document.getElementById('f-category').value = '__custom__';
+    if (_customInp) { _customInp.value = product.category; _customInp.style.display = 'block'; }
+  } else {
+    document.getElementById('f-category').value = product.category || '';
+    if (_customInp) { _customInp.value = ''; _customInp.style.display = 'none'; }
+  }
   document.getElementById('f-price').value = product.price || '';
   document.getElementById('f-stock').value = product.quantity || '';
   document.getElementById('f-description').value = product.description || '';
@@ -1145,7 +1253,7 @@ function wireConfigTheme() {
   }
 }
 
-function renderConfig() {
+function renderConfigGeneral() {
   const main = document.getElementById('main');
   const skeleton = `
     <div class="card mb-24">
@@ -1157,7 +1265,7 @@ function renderConfig() {
   main.innerHTML = `
     <div class="page-section">
       <div class="page-header">
-        <h1 class="page-title-large font-display">${t('settings.title')}</h1>
+        <h1 class="page-title-large font-display">${t('nav.config_general')}</h1>
       </div>
       <div id="config-content">${skeleton}</div>
     </div>`;
@@ -1165,14 +1273,32 @@ function renderConfig() {
   realAPI('/api/profile')
     .then(profile => {
       document.getElementById('config-content').innerHTML =
-        renderConfigAccount(profile) + renderConfigTheme() + renderConfigDanger();
+        renderConfigAccount(profile) + renderConfigDanger();
       wireConfigAccount(profile);
-      wireConfigTheme();
     })
     .catch(() => {
       const el = document.getElementById('config-content');
       if (el) el.innerHTML = errorBanner();
     });
+}
+
+function renderConfigThemeSection() {
+  const main = document.getElementById('main');
+  main.innerHTML = `
+    <div class="page-section">
+      <div class="page-header">
+        <h1 class="page-title-large font-display">${t('nav.config_theme')}</h1>
+      </div>
+      <div id="config-content">
+        ${renderConfigTheme()}
+      </div>
+    </div>`;
+  wireConfigTheme();
+}
+
+function renderConfig() {
+  history.replaceState(null, '', '#/config/general');
+  router();
 }
 
 /* ── INIT ─────────────────────────────────────────────────── */

@@ -14,9 +14,11 @@ from core.config import settings
 from core.security import hash_password
 
 import os
-EMAIL = os.environ["SEED_EMAIL"]
-PASSWORD = os.environ["SEED_PASSWORD"]
-BUSINESS_NAME = os.environ["SEED_BUSINESS_NAME"]
+from dotenv import load_dotenv
+load_dotenv()
+EMAIL = os.environ["EMAIL"]
+PASSWORD = os.environ["PASSWORD"]
+BUSINESS_NAME = os.getenv("BUSINESS_NAME")
 
 
 
