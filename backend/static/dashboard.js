@@ -344,7 +344,23 @@ const ROUTES = {
   '#/config/theme': renderConfigThemeSection,
 };
 
+function toggleSidebar() {
+  const sidebar = document.querySelector('.sidebar');
+  const backdrop = document.getElementById('sidebar-backdrop');
+  const isOpen = sidebar.classList.toggle('sidebar--open');
+  if (backdrop) backdrop.classList.toggle('backdrop--visible', isOpen);
+  document.body.classList.toggle('body--no-scroll', isOpen);
+}
+
+function closeSidebar() {
+  document.querySelector('.sidebar').classList.remove('sidebar--open');
+  const backdrop = document.getElementById('sidebar-backdrop');
+  if (backdrop) backdrop.classList.remove('backdrop--visible');
+  document.body.classList.remove('body--no-scroll');
+}
+
 function navigate(hash) {
+  closeSidebar();
   history.pushState(null, '', hash);
   router();
 }
@@ -1321,6 +1337,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // Hash routing
   window.addEventListener('hashchange', router);
+
+  // Close mobile sidebar on Escape
+  document.addEventListener('keydown', e => { if (e.key === 'Escape') closeSidebar(); });
 
   // Topbar avatar dropdown
   const avatarBtn = document.getElementById('topbar-avatar');

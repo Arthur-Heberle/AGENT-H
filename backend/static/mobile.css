@@ -1,0 +1,279 @@
+/* ============================================================
+   Mobile styles — phones ≤768px
+   Depends on CSS variables defined in dashboard.css
+   ============================================================ */
+
+@media (max-width: 768px) {
+
+  /* ── Layout ──────────────────────────────────────────────── */
+
+  .app-layout {
+    display: block;
+  }
+
+  .main-content {
+    margin-left: 0;
+    width: 100%;
+    min-height: 100vh;
+  }
+
+  /* ── Sidebar drawer ──────────────────────────────────────── */
+
+  .sidebar {
+    transform: translateX(-100%);
+    transition: transform 240ms ease;
+    z-index: 350;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .sidebar.sidebar--open {
+    transform: translateX(0);
+  }
+
+  /* ── Sidebar backdrop ────────────────────────────────────── */
+
+  .sidebar-backdrop {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.45);
+    z-index: 349;
+  }
+
+  .sidebar-backdrop.backdrop--visible {
+    display: block;
+  }
+
+  /* ── Body scroll lock ────────────────────────────────────── */
+
+  body.body--no-scroll {
+    overflow: hidden;
+  }
+
+  /* ── Hamburger button ────────────────────────────────────── */
+
+  .sidebar-toggle {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    height: 40px;
+    flex-shrink: 0;
+    background: none;
+    border: none;
+    border-radius: 8px;
+    color: var(--text-primary);
+    cursor: pointer;
+    margin-right: 4px;
+    transition: background 150ms ease;
+  }
+
+  .sidebar-toggle:hover,
+  .sidebar-toggle:focus-visible {
+    background: var(--bg-hover);
+    outline: none;
+  }
+
+  /* ── Topbar ──────────────────────────────────────────────── */
+
+  .topbar {
+    padding: 0 12px;
+    height: 52px;
+    position: sticky;
+    top: 0;
+    z-index: 200;
+  }
+
+  .topbar-breadcrumb {
+    font-size: 13px;
+  }
+
+  /* ── Page content padding ────────────────────────────────── */
+
+  .page-content {
+    padding: 16px;
+  }
+
+  .page-section {
+    padding: 16px;
+    margin-bottom: 12px;
+  }
+
+  .section-header {
+    padding: 14px 16px;
+  }
+
+  /* ── KPI strip ───────────────────────────────────────────── */
+
+  .kpi-strip {
+    grid-template-columns: repeat(2, 1fr) !important;
+    gap: 10px;
+  }
+
+  .kpi-card {
+    padding: 14px 16px;
+  }
+
+  .kpi-value {
+    font-size: 26px;
+  }
+
+  /* ── Tables ──────────────────────────────────────────────── */
+
+  .table-wrapper {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .section-body {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  table {
+    min-width: 560px;
+  }
+
+  /* ── Drawers (slide-in panels) ───────────────────────────── */
+
+  .drawer {
+    width: 100% !important;
+    max-width: 100% !important;
+  }
+
+  .drawer-header {
+    padding: 16px 20px;
+  }
+
+  .drawer-body {
+    padding: 16px 20px;
+  }
+
+  .drawer-footer {
+    padding: 16px 20px;
+  }
+
+  /* ── Forms ───────────────────────────────────────────────── */
+
+  .form-row {
+    flex-direction: column;
+    gap: 0;
+  }
+
+  .form-group {
+    width: 100% !important;
+    max-width: 100% !important;
+  }
+
+  /* Prevent iOS auto-zoom on input focus */
+  input[type="text"],
+  input[type="email"],
+  input[type="password"],
+  input[type="number"],
+  input[type="tel"],
+  input[type="search"],
+  select,
+  textarea {
+    font-size: 16px !important;
+  }
+
+  /* ── Catalog header / filter bar ─────────────────────────── */
+
+  .catalog-header {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 10px;
+  }
+
+  .filter-bar {
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  .filter-bar input,
+  .filter-bar select {
+    flex: 1;
+    min-width: 120px;
+  }
+
+  /* ── Catalog grid ────────────────────────────────────────── */
+
+  .catalog-grid {
+    grid-template-columns: 1fr !important;
+    gap: 10px;
+  }
+
+  /* ── Touch targets ───────────────────────────────────────── */
+
+  .nav-item,
+  .nav-sub-item {
+    min-height: 44px;
+  }
+
+  .btn {
+    min-height: 44px;
+  }
+
+  /* ── Avatar dropdown ─────────────────────────────────────── */
+
+  .avatar-dropdown {
+    right: 0;
+    left: auto;
+    min-width: 180px;
+  }
+
+  /* ── Toast ───────────────────────────────────────────────── */
+
+  .toast {
+    left: 12px;
+    right: 12px;
+    bottom: 16px;
+    max-width: none;
+  }
+
+  /* ── Login / auth page ───────────────────────────────────── */
+
+  .auth-wrapper,
+  .login-wrapper {
+    padding: 24px 16px;
+    min-height: 100vh;
+    align-items: flex-start;
+  }
+
+  .auth-card,
+  .login-card {
+    width: 100%;
+    max-width: 100%;
+    padding: 24px 20px;
+    border-radius: 12px;
+  }
+
+  .tab-bar {
+    margin-bottom: 20px;
+  }
+
+  .otp-row {
+    gap: 6px;
+  }
+
+  .otp-row input {
+    flex: 1;
+    min-width: 0;
+    padding: 10px 4px;
+    text-align: center;
+  }
+
+}
+
+/* ── Desktop: hide hamburger and backdrop ─────────────────── */
+
+@media (min-width: 769px) {
+  .sidebar-toggle {
+    display: none;
+  }
+
+  .sidebar-backdrop {
+    display: none !important;
+  }
+}

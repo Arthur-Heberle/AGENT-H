@@ -1,146 +1,615 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
+
 <head>
-  <meta charset="UTF-8"/>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Agente — Entrar</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com"/>
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
-  <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,400;0,9..144,500;1,9..144,300&family=Hanken+Grotesk:wght@300;400;500;600&display=swap" rel="stylesheet"/>
-  <link rel="stylesheet" href="dashboard.css"/>
-</head>
-<body>
-<div class="login-page">
-
-  <!-- Language toggle -->
-  <div class="login-lang-toggle">
-    <div class="lang-toggle">
-      <button class="lang-btn active" data-lang-btn="pt" id="lang-pt">🇧🇷 PT</button>
-      <button class="lang-btn" data-lang-btn="en" id="lang-en">EN</button>
-    </div>
-  </div>
-
-  <!-- Card -->
-  <div class="login-card">
-    <div class="login-logo">
-      <span class="login-wordmark" id="login-wordmark">Agente</span>
-      <p class="login-subtitle" id="login-subtitle">Gerencie seu assistente no WhatsApp</p>
-    </div>
-
-    <!-- Error banner -->
-    <div id="login-error" style="display:none;background:#FDECEA;border:1px solid #F5C6C3;border-radius:8px;padding:10px 14px;font-size:13px;color:var(--red);margin-bottom:16px;text-align:center">
-      E-mail ou senha incorretos.
-    </div>
-
-    <form class="login-form" id="login-form" autocomplete="off" novalidate>
-      <div class="login-input-group">
-        <label class="login-label" for="email" id="label-email">E-mail</label>
-        <input
-          type="email"
-          id="email"
-          class="login-input"
-          placeholder="admin@moveisviana.com.br"
-          autocomplete="email"
-          required
-        />
-      </div>
-
-      <div class="login-input-group">
-        <label class="login-label" for="password" id="label-password">Senha</label>
-        <input
-          type="password"
-          id="password"
-          class="login-input"
-          placeholder="••••••••"
-          autocomplete="current-password"
-          required
-        />
-      </div>
-
-      <button type="submit" class="login-btn" id="login-btn">Entrar</button>
-    </form>
-  </div>
-
-</div>
-
-<script>
-(function () {
-  'use strict';
-
-  // ── i18n minimal ───────────────────────────────────────
-  const loginStrings = {
-    pt: {
-      subtitle:  'Gerencie seu assistente no WhatsApp',
-      email:     'E-mail',
-      password:  'Senha',
-      btn:       'Entrar',
-      error:     'E-mail ou senha incorretos.',
-    },
-    en: {
-      subtitle:  'Manage your WhatsApp AI assistant',
-      email:     'Email',
-      password:  'Password',
-      btn:       'Sign in',
-      error:     'Incorrect email or password.',
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,400;0,9..144,500;1,9..144,300&family=Hanken+Grotesk:wght@300;400;500;600&display=swap"
+    rel="stylesheet" />
+  <script>
+    (function() {
+      var theme = localStorage.getItem('agente_theme');
+      if (theme && theme !== 'default') {
+        document.documentElement.setAttribute('data-theme', theme);
+      }
+    })();
+  </script>
+  <link rel="stylesheet" href="/static/dashboard.css" />
+  <link rel="stylesheet" href="/static/mobile.css" />
+  <style>
+    /* ── Tab bar ─────────────────────────────────────────────── */
+    .tab-bar {
+      display: flex;
+      border-bottom: 1.5px solid var(--border);
+      margin-bottom: 28px;
+      gap: 0;
     }
-  };
 
-  let lang = localStorage.getItem('agente_lang') || 'pt';
+    .tab-btn {
+      flex: 1;
+      background: none;
+      border: none;
+      padding: 12px 0 11px;
+      font-family: var(--font-body);
+      font-size: 14px;
+      font-weight: 500;
+      color: var(--text-secondary);
+      cursor: pointer;
+      border-bottom: 2px solid transparent;
+      margin-bottom: -1.5px;
+      transition: color .18s, border-color .18s;
+    }
 
-  function applyLang() {
-    const s = loginStrings[lang];
-    document.getElementById('login-subtitle').textContent  = s.subtitle;
-    document.getElementById('label-email').textContent    = s.email;
-    document.getElementById('label-password').textContent = s.password;
-    document.getElementById('login-btn').textContent      = s.btn;
+    .tab-btn.active {
+      color: var(--gold);
+      border-bottom-color: var(--gold);
+    }
 
-    document.getElementById('lang-pt').classList.toggle('active', lang === 'pt');
-    document.getElementById('lang-en').classList.toggle('active', lang === 'en');
-    document.documentElement.lang = lang === 'pt' ? 'pt-BR' : 'en';
-  }
+    .tab-btn:hover:not(.active) {
+      color: var(--text-primary);
+    }
 
-  document.getElementById('lang-pt').addEventListener('click', () => {
-    lang = 'pt'; localStorage.setItem('agente_lang', lang); applyLang();
-  });
-  document.getElementById('lang-en').addEventListener('click', () => {
-    lang = 'en'; localStorage.setItem('agente_lang', lang); applyLang();
-  });
+    /* ── Panels ──────────────────────────────────────────────── */
+    .auth-panel {
+      display: none;
+    }
 
-  applyLang();
+    .auth-panel.active {
+      display: block;
+    }
 
-  // ── Auth guard (already logged in) ────────────────────
-  if (localStorage.getItem('agente_token')) {
-    window.location.href = 'dashboard.html';
-    return;
-  }
+    /* ── Step transitions ────────────────────────────────────── */
+    .reg-step {
+      display: none;
+    }
 
-  // ── Login submit ───────────────────────────────────────
-  const form    = document.getElementById('login-form');
-  const btn     = document.getElementById('login-btn');
-  const errorEl = document.getElementById('login-error');
+    .reg-step.active {
+      display: block;
+    }
 
-  form.addEventListener('submit', function (e) {
-    e.preventDefault();
-    errorEl.style.display = 'none';
+    /* ── OTP boxes ───────────────────────────────────────────── */
+    .otp-row {
+      display: flex;
+      gap: 10px;
+      justify-content: center;
+      margin: 8px 0 24px;
+    }
 
-    const email    = document.getElementById('email').value.trim();
-    const password = document.getElementById('password').value;
+    .otp-box {
+      width: 48px;
+      height: 56px;
+      border: 1.5px solid var(--border-dark);
+      border-radius: var(--radius-card);
+      text-align: center;
+      font-size: 22px;
+      font-weight: 600;
+      font-family: var(--font-body);
+      color: var(--text-primary);
+      background: var(--bg-card);
+      transition: border-color .15s, box-shadow .15s;
+      caret-color: transparent;
+    }
 
-    if (!email || !password) return;
+    .otp-box:focus {
+      outline: none;
+      border-color: var(--gold);
+      box-shadow: 0 0 0 2px var(--gold-light);
+    }
 
-    btn.disabled = true;
-    btn.textContent = '…';
+    /* ── Resend link / timer ─────────────────────────────────── */
+    .resend-row {
+      text-align: center;
+      margin-top: 16px;
+      font-size: 13px;
+      color: var(--text-secondary);
+    }
 
-    // Mock auth — any non-empty credentials succeed after 600ms
-    setTimeout(() => {
-      // In production, call: POST /api/auth/login { email, password }
-      // and store the returned token
-      localStorage.setItem('agente_token', 'mock-token-' + Date.now());
-      window.location.href = 'dashboard.html';
-    }, 600);
-  });
+    .resend-btn {
+      background: none;
+      border: none;
+      font-family: var(--font-body);
+      font-size: 13px;
+      color: var(--gold);
+      cursor: pointer;
+      padding: 0;
+      font-weight: 500;
+    }
 
-})();
-</script>
+    .resend-btn:disabled {
+      color: var(--text-tertiary);
+      cursor: default;
+    }
+
+    /* ── OTP step subtitle ───────────────────────────────────── */
+    .otp-hint {
+      font-size: 13px;
+      color: var(--text-secondary);
+      text-align: center;
+      margin-bottom: 4px;
+      line-height: 1.5;
+    }
+
+    /* ── Phone prefix (+55) ──────────────────────────────────── */
+    .phone-wrap {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .phone-prefix {
+      font-family: var(--font-body);
+      font-size: 15px;
+      font-weight: 400;
+      color: var(--text-tertiary);
+      white-space: nowrap;
+      user-select: none;
+    }
+
+    .phone-wrap .login-input {
+      flex: 1;
+      min-width: 0;
+      margin: 0;
+    }
+
+    /* ── Password eye toggle ─────────────────────────────────── */
+    .pw-wrap {
+      position: relative;
+    }
+
+    .pw-wrap .login-input {
+      padding-right: 44px;
+      width: 100%;
+      box-sizing: border-box;
+    }
+
+    .pw-eye {
+      position: absolute;
+      right: 12px;
+      top: 50%;
+      transform: translateY(-50%);
+      background: none;
+      border: none;
+      cursor: pointer;
+      padding: 4px;
+      color: var(--text-tertiary);
+      display: flex;
+      align-items: center;
+      transition: color .15s;
+      line-height: 0;
+    }
+
+    .pw-eye:hover {
+      color: var(--text-secondary);
+    }
+  </style>
+</head>
+
+<body>
+  <div class="login-page">
+
+    <!-- Language toggle -->
+    <div class="login-lang-toggle">
+      <div class="lang-toggle">
+        <button class="lang-btn active" id="lang-pt">🇧🇷 PT</button>
+        <button class="lang-btn" id="lang-en">EN</button>
+      </div>
+    </div>
+
+    <!-- Card -->
+    <div class="login-card">
+      <div class="login-logo">
+        <span class="login-wordmark">Agente</span>
+        <p class="login-subtitle" id="login-subtitle">Gerencie seu assistente no WhatsApp</p>
+      </div>
+
+      <!-- Tab bar -->
+      <div class="tab-bar">
+        <button class="tab-btn active" id="tab-signin" onclick="switchTab('signin')">
+          Entrar
+        </button>
+        <button class="tab-btn" id="tab-register" onclick="switchTab('register')">
+          Criar conta
+        </button>
+      </div>
+
+      <!-- Error / success banner -->
+      <div id="auth-banner"
+        style="display:none;border-radius:8px;padding:10px 14px;font-size:13px;margin-bottom:16px;text-align:center">
+      </div>
+
+      <!-- ── Sign-in panel ────────────────────────────────────── -->
+      <div id="panel-signin" class="auth-panel active">
+        <form id="login-form" autocomplete="off" novalidate>
+          <div class="login-input-group">
+            <label class="login-label" for="email" id="label-email">E-mail</label>
+            <input type="email" id="email" name="email" class="login-input" placeholder="you@email.com"
+              autocomplete="email" required />
+          </div>
+          <div class="login-input-group">
+            <label class="login-label" for="password" id="label-password">Senha</label>
+            <div class="pw-wrap">
+              <input type="password" id="password" class="login-input" placeholder="••••••••"
+                autocomplete="current-password" required />
+              <button type="button" class="pw-eye" onclick="togglePw('password')" tabindex="-1"
+                aria-label="Mostrar senha"></button>
+            </div>
+          </div>
+          <button type="submit" class="login-btn" id="login-btn">Entrar</button>
+        </form>
+      </div>
+
+      <!-- ── Register panel ──────────────────────────────────── -->
+      <div id="panel-register" class="auth-panel">
+
+        <!-- Step 1: account details -->
+        <div id="reg-step-1" class="reg-step active">
+          <form id="register-form" autocomplete="off" novalidate>
+            <div class="login-input-group">
+              <label class="login-label" for="reg-phone" id="label-phone">WhatsApp / Telefone</label>
+              <div class="phone-wrap">
+                <span class="phone-prefix">+55</span>
+                <input type="tel" id="reg-phone" name="phone" class="login-input" placeholder="49 99999-9999"
+                  autocomplete="tel" required />
+              </div>
+            </div>
+            <div class="login-input-group">
+              <label class="login-label" for="reg-name" id="label-name">Nome do negócio</label>
+              <input type="text" id="reg-name" class="login-input" placeholder="My Store" autocomplete="organization"
+                required />
+            </div>
+            <div class="login-input-group">
+              <label class="login-label" for="reg-email" id="label-reg-email">E-mail</label>
+              <input type="email" id="reg-email" name="email" class="login-input" placeholder="you@email.com"
+                autocomplete="email" required />
+            </div>
+            <div class="login-input-group">
+              <label class="login-label" for="reg-password" id="label-reg-password">Senha</label>
+              <div class="pw-wrap">
+                <input type="password" id="reg-password" class="login-input" placeholder="••••••••"
+                  autocomplete="new-password" required />
+                <button type="button" class="pw-eye" onclick="togglePw('reg-password')" tabindex="-1"
+                  aria-label="Mostrar senha"></button>
+              </div>
+            </div>
+            <button type="submit" class="login-btn" id="register-btn">Enviar código</button>
+          </form>
+        </div>
+
+        <!-- Step 2: OTP verification -->
+        <div id="reg-step-2" class="reg-step">
+          <p class="otp-hint" id="otp-hint">
+            Enviamos um código de 6 dígitos para o seu WhatsApp.
+          </p>
+          <div class="otp-row" id="otp-row">
+            <input class="otp-box" maxlength="1" inputmode="numeric" pattern="[0-9]" id="otp-0" />
+            <input class="otp-box" maxlength="1" inputmode="numeric" pattern="[0-9]" id="otp-1" />
+            <input class="otp-box" maxlength="1" inputmode="numeric" pattern="[0-9]" id="otp-2" />
+            <input class="otp-box" maxlength="1" inputmode="numeric" pattern="[0-9]" id="otp-3" />
+            <input class="otp-box" maxlength="1" inputmode="numeric" pattern="[0-9]" id="otp-4" />
+            <input class="otp-box" maxlength="1" inputmode="numeric" pattern="[0-9]" id="otp-5" />
+          </div>
+          <button class="login-btn" id="verify-btn" onclick="submitVerify()">Verificar</button>
+          <div class="resend-row">
+            <span id="resend-label">Não recebeu? </span>
+            <button class="resend-btn" id="resend-btn" onclick="resendOTP()" disabled>
+              Reenviar (<span id="resend-timer">30</span>s)
+            </button>
+          </div>
+        </div>
+
+      </div><!-- /panel-register -->
+
+    </div><!-- /login-card -->
+  </div>
+
+  <script>
+    (function () {
+      'use strict';
+
+      // ── i18n ──────────────────────────────────────────────────────────────
+      const S = {
+        pt: {
+          subtitle: 'Gerencie seu assistente no WhatsApp',
+          tabSignin: 'Entrar',
+          tabRegister: 'Criar conta',
+          email: 'E-mail',
+          password: 'Senha',
+          signinBtn: 'Entrar',
+          phone: 'WhatsApp / Telefone',
+          name: 'Nome do negócio',
+          regEmail: 'E-mail',
+          regPassword: 'Senha',
+          sendBtn: 'Enviar código',
+          verifyBtn: 'Verificar',
+          otpHint: 'Enviamos um código de 6 dígitos para o seu WhatsApp.',
+          resendLabel: 'Não recebeu? ',
+          resendBtn: 'Reenviar',
+          resendCooldown: 'Reenviar ({n}s)',
+          errLogin: 'E-mail ou senha incorretos.',
+          errRequired: 'Preencha todos os campos.',
+          errPhone: 'Número de telefone inválido.',
+          errOtp: 'Código inválido ou expirado.',
+          errPhoneExists: 'Este número já está cadastrado.',
+          errEmailExists: 'Este e-mail já está cadastrado.',
+          errGeneric: 'Erro inesperado. Tente novamente.',
+        },
+        en: {
+          subtitle: 'Manage your WhatsApp AI assistant',
+          tabSignin: 'Sign in',
+          tabRegister: 'Create account',
+          email: 'Email',
+          password: 'Password',
+          signinBtn: 'Sign in',
+          phone: 'WhatsApp / Phone',
+          name: 'Business name',
+          regEmail: 'Email',
+          regPassword: 'Password',
+          sendBtn: 'Send code',
+          verifyBtn: 'Verify',
+          otpHint: 'We sent a 6-digit code to your WhatsApp.',
+          resendLabel: "Didn't receive it? ",
+          resendBtn: 'Resend',
+          resendCooldown: 'Resend ({n}s)',
+          errLogin: 'Incorrect email or password.',
+          errRequired: 'Please fill in all fields.',
+          errPhone: 'Invalid phone number.',
+          errOtp: 'Invalid or expired code.',
+          errPhoneExists: 'This phone is already registered.',
+          errEmailExists: 'This email is already registered.',
+          errGeneric: 'Unexpected error. Please try again.',
+        },
+      };
+
+      let lang = localStorage.getItem('agente_lang') || 'pt';
+
+      function t(key) { return S[lang][key] || key; }
+
+      function applyLang() {
+        document.getElementById('login-subtitle').textContent = t('subtitle');
+        document.getElementById('tab-signin').textContent = t('tabSignin');
+        document.getElementById('tab-register').textContent = t('tabRegister');
+        document.getElementById('label-email').textContent = t('email');
+        document.getElementById('label-password').textContent = t('password');
+        document.getElementById('login-btn').textContent = t('signinBtn');
+        document.getElementById('label-phone').textContent = t('phone');
+        document.getElementById('label-name').textContent = t('name');
+        document.getElementById('label-reg-email').textContent = t('regEmail');
+        document.getElementById('label-reg-password').textContent = t('regPassword');
+        document.getElementById('register-btn').textContent = t('sendBtn');
+        document.getElementById('verify-btn').textContent = t('verifyBtn');
+        document.getElementById('otp-hint').textContent = t('otpHint');
+        document.getElementById('resend-label').textContent = t('resendLabel');
+        document.documentElement.lang = lang === 'pt' ? 'pt-BR' : 'en';
+        document.getElementById('lang-pt').classList.toggle('active', lang === 'pt');
+        document.getElementById('lang-en').classList.toggle('active', lang === 'en');
+      }
+
+      document.getElementById('lang-pt').addEventListener('click', () => {
+        lang = 'pt'; localStorage.setItem('agente_lang', lang); applyLang();
+      });
+      document.getElementById('lang-en').addEventListener('click', () => {
+        lang = 'en'; localStorage.setItem('agente_lang', lang); applyLang();
+      });
+
+      applyLang();
+
+      // ── Eye icon SVGs ─────────────────────────────────────────────────────
+      const EYE_SHOW = `<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>`;
+      const EYE_HIDE = `<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>`;
+
+      // Initialise eye buttons with hidden icon
+      document.querySelectorAll('.pw-eye').forEach(btn => { btn.innerHTML = EYE_HIDE; });
+
+      window.togglePw = function (id) {
+        const inp = document.getElementById(id);
+        const btn = inp.nextElementSibling;
+        const showing = inp.type === 'text';
+        inp.type = showing ? 'password' : 'text';
+        btn.innerHTML = showing ? EYE_HIDE : EYE_SHOW;
+      };
+
+      // ── Auth guard ────────────────────────────────────────────────────────
+      if (localStorage.getItem('agente_token')) {
+        window.location.href = '/dashboard';
+        return;
+      }
+
+      // ── Banner helpers ────────────────────────────────────────────────────
+      const banner = document.getElementById('auth-banner');
+
+      function showError(msg) {
+        banner.style.cssText = 'display:block;background:#FDECEA;border:1px solid #F5C6C3;color:var(--red)';
+        banner.textContent = msg;
+      }
+
+      function showSuccess(msg) {
+        banner.style.cssText = 'display:block;background:#E8F5EE;border:1px solid #B6D9C7;color:var(--green)';
+        banner.textContent = msg;
+      }
+
+      function hideBanner() { banner.style.display = 'none'; }
+
+      // ── Tab switcher ──────────────────────────────────────────────────────
+      window.switchTab = function (tab) {
+        hideBanner();
+        document.getElementById('panel-signin').classList.toggle('active', tab === 'signin');
+        document.getElementById('panel-register').classList.toggle('active', tab === 'register');
+        document.getElementById('tab-signin').classList.toggle('active', tab === 'signin');
+        document.getElementById('tab-register').classList.toggle('active', tab === 'register');
+      };
+
+      // ── Sign-in ───────────────────────────────────────────────────────────
+      const loginForm = document.getElementById('login-form');
+      const loginBtn = document.getElementById('login-btn');
+
+      loginForm.addEventListener('submit', function (e) {
+        e.preventDefault();
+        hideBanner();
+        const email = document.getElementById('email').value.trim();
+        const password = document.getElementById('password').value;
+        if (!email || !password) { showError(t('errRequired')); return; }
+
+        loginBtn.disabled = true;
+        loginBtn.textContent = '…';
+
+        fetch('/api/auth/login', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email, password }),
+        })
+          .then(res => { if (!res.ok) throw res.status; return res.json(); })
+          .then(data => {
+            localStorage.setItem('agente_token', data.token);
+            window.location.href = '/dashboard';
+          })
+          .catch(() => {
+            showError(t('errLogin'));
+            loginBtn.disabled = false;
+            loginBtn.textContent = t('signinBtn');
+          });
+      });
+
+      // ── Registration state ────────────────────────────────────────────────
+      let pendingPhone = '';
+      let resendInterval = null;
+
+      // ── Register step 1 ──────────────────────────────────────────────────
+      const registerForm = document.getElementById('register-form');
+      const registerBtn = document.getElementById('register-btn');
+
+      registerForm.addEventListener('submit', function (e) {
+        e.preventDefault();
+        doRegister();
+      });
+
+      function doRegister() {
+        hideBanner();
+        const rawPhone = document.getElementById('reg-phone').value.trim();
+        const phone = '+55' + rawPhone.replace(/\D/g, '');
+        const name = document.getElementById('reg-name').value.trim();
+        const email = document.getElementById('reg-email').value.trim();
+        const password = document.getElementById('reg-password').value;
+
+        if (!rawPhone || !name || !email || !password) { showError(t('errRequired')); return; }
+
+        registerBtn.disabled = true;
+        registerBtn.textContent = '…';
+
+        fetch('/api/auth/register', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ phone, name, email, password }),
+        })
+          .then(res => {
+            if (res.status === 409) return res.json().then(d => { throw { status: 409, detail: d.detail }; });
+            if (!res.ok) throw { status: res.status };
+            return res.json();
+          })
+          .then(() => {
+            pendingPhone = phone;
+            showStep2();
+          })
+          .catch(err => {
+            let msg = t('errGeneric');
+            if (err.status === 409) {
+              msg = (err.detail || '').toLowerCase().includes('phone') ? t('errPhoneExists') : t('errEmailExists');
+            }
+            showError(msg);
+            registerBtn.disabled = false;
+            registerBtn.textContent = t('sendBtn');
+          });
+      }
+
+      function showStep2() {
+        document.getElementById('reg-step-1').classList.remove('active');
+        document.getElementById('reg-step-2').classList.add('active');
+        hideBanner();
+        // Focus first OTP box
+        document.getElementById('otp-0').focus();
+        startResendTimer(30);
+      }
+
+      // ── OTP boxes keyboard handling ───────────────────────────────────────
+      document.getElementById('otp-row').addEventListener('input', function (e) {
+        const box = e.target;
+        const idx = parseInt(box.id.split('-')[1]);
+        // keep only digits
+        box.value = box.value.replace(/\D/g, '').slice(-1);
+        if (box.value && idx < 5) document.getElementById('otp-' + (idx + 1)).focus();
+      });
+
+      document.getElementById('otp-row').addEventListener('keydown', function (e) {
+        const box = e.target;
+        const idx = parseInt(box.id.split('-')[1]);
+        if (e.key === 'Backspace' && !box.value && idx > 0) {
+          document.getElementById('otp-' + (idx - 1)).focus();
+        }
+      });
+
+      // ── OTP verify ────────────────────────────────────────────────────────
+      window.submitVerify = function () {
+        hideBanner();
+        const code = [0, 1, 2, 3, 4, 5].map(i => document.getElementById('otp-' + i).value).join('');
+        if (code.length < 6) { showError(t('errOtp')); return; }
+
+        const verifyBtn = document.getElementById('verify-btn');
+        verifyBtn.disabled = true;
+        verifyBtn.textContent = '…';
+
+        fetch('/api/auth/verify-otp', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ phone: pendingPhone, code }),
+        })
+          .then(res => { if (!res.ok) throw res.status; return res.json(); })
+          .then(data => {
+            localStorage.setItem('agente_token', data.token);
+            window.location.href = '/dashboard';
+          })
+          .catch(() => {
+            showError(t('errOtp'));
+            verifyBtn.disabled = false;
+            verifyBtn.textContent = t('verifyBtn');
+            [0, 1, 2, 3, 4, 5].forEach(i => { document.getElementById('otp-' + i).value = ''; });
+            document.getElementById('otp-0').focus();
+          });
+      };
+
+      // ── Resend cooldown timer ─────────────────────────────────────────────
+      function startResendTimer(seconds) {
+        const btn = document.getElementById('resend-btn');
+        const timerEl = document.getElementById('resend-timer');
+        let remaining = seconds;
+
+        btn.disabled = true;
+        timerEl.textContent = remaining;
+
+        if (resendInterval) clearInterval(resendInterval);
+        resendInterval = setInterval(() => {
+          remaining--;
+          timerEl.textContent = remaining;
+          if (remaining <= 0) {
+            clearInterval(resendInterval);
+            btn.disabled = false;
+            btn.textContent = t('resendBtn');
+          }
+        }, 1000);
+      }
+
+      window.resendOTP = function () {
+        document.getElementById('resend-btn').textContent = '…';
+        doRegister();
+        [0, 1, 2, 3, 4, 5].forEach(i => { document.getElementById('otp-' + i).value = ''; });
+        document.getElementById('otp-0').focus();
+        startResendTimer(30);
+      };
+
+    })();
+  </script>
 </body>
+
 </html>
