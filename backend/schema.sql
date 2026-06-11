@@ -25,6 +25,9 @@ CREATE INDEX IF NOT EXISTS idx_messages_status_time
 CREATE INDEX IF NOT EXISTS idx_messages_conversation
   ON messages(customer_phone, business_phone, created_at DESC);
 
+-- Idempotent migration: classification column added after initial deploy
+ALTER TABLE messages ADD COLUMN IF NOT EXISTS classification VARCHAR(30);
+
 CREATE TABLE IF NOT EXISTS products (
   id             SERIAL        PRIMARY KEY,
   business_phone VARCHAR(30)   NOT NULL,
