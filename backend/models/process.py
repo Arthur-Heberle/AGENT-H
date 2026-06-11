@@ -15,3 +15,4 @@ class ProcessIn(BaseModel):
 class ProcessOut(BaseModel):
     reply: str
     classification: str
+    lead_summary: str | None = None

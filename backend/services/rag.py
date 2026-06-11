@@ -19,8 +19,9 @@ _DEFAULT_SYSTEM_PROMPT = (
 )
 
 _CLASSIFICATION_SUFFIX = (
-    "\n\nAo final da sua resposta, em uma linha separada:\n"
-    "CLASSIFICATION: [QUALIFIED_LEAD|GENERAL_QUESTION|GREETING|OUT_OF_SCOPE]"
+    "\n\nAo final da sua resposta, em linhas separadas:\n"
+    "CLASSIFICATION: [QUALIFIED_LEAD|GENERAL_QUESTION|GREETING|OUT_OF_SCOPE]\n"
+    "Se QUALIFIED_LEAD, adicione também: LEAD_SUMMARY: <resumo em 1-2 frases do que o cliente precisa>"
 )
 
 _CLOSED_REPLY = "Estamos fora do horário de atendimento. Retornaremos em breve."
@@ -102,12 +103,20 @@ async def process_message(
 
     raw_reply = await chat(llm_messages)
 
+    lead_summary: str | None = None
+
     if "CLASSIFICATION:" in raw_reply:
         parts = raw_reply.split("CLASSIFICATION:", 1)
         reply = parts[0].strip()
-        classification = parts[1].strip().split()[0] if parts[1].strip() else "GENERAL_QUESTION"
+        tail = parts[1].strip()
+        classification = tail.split()[0] if tail else "GENERAL_QUESTION"
+        if "LEAD_SUMMARY:" in tail:
+            lead_summary = tail.split("LEAD_SUMMARY:", 1)[1].strip().splitlines()[0].strip()
     else:
         reply = raw_reply.strip()
         classification = "GENERAL_QUESTION"
 
-    return ProcessOut(reply=reply, classification=classification)
+    if classification != "QUALIFIED_LEAD":
+        lead_summary = None
+
+    return ProcessOut(reply=reply, classification=classification, lead_summary=lead_summary)
