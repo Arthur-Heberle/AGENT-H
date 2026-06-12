@@ -1178,7 +1178,7 @@ function renderConfigAccount(profile) {
       <div class="config-field-label">${t('config.email')}</div>
       <input class="form-input" id="cfg-email" type="email" value="${escapeHtml(profile.email || '')}">
     </div>`;
-  const footer = `<button class="btn-primary" id="cfg-account-save">${t('config.save')}</button>`;
+  const footer = `<button class="btn btn-primary" id="cfg-account-save">${t('config.save')}</button>`;
   return _configCard(t('config.account'), body, footer);
 }
 

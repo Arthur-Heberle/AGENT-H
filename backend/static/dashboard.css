@@ -661,13 +661,23 @@ th.num-center {
 .btn:disabled { opacity: 0.4; cursor: not-allowed; }
 
 .btn-primary {
-  background: var(--gold);
-  color: var(--text-primary);
-  border: 1px solid var(--gold);
+  background: linear-gradient(160deg, #d4b05a 0%, var(--gold) 50%, #b8952f 100%);
+  color: #2a1f00;
+  border: 1px solid #b8952f;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  box-shadow: 0 2px 8px rgba(201,168,76,0.35), 0 1px 2px rgba(0,0,0,0.12), inset 0 1px 0 rgba(255,255,255,0.25);
+  transition: all 180ms ease;
 }
 .btn-primary:hover:not(:disabled) {
-  background: var(--gold-hover);
-  border-color: var(--gold-hover);
+  background: linear-gradient(160deg, #c9a84c 0%, #b8952f 60%, #a07820 100%);
+  border-color: #a07820;
+  box-shadow: 0 4px 14px rgba(201,168,76,0.45), 0 2px 4px rgba(0,0,0,0.15), inset 0 1px 0 rgba(255,255,255,0.2);
+  transform: translateY(-1px);
+}
+.btn-primary:active:not(:disabled) {
+  transform: translateY(0) scale(0.98);
+  box-shadow: 0 1px 4px rgba(201,168,76,0.3), inset 0 1px 3px rgba(0,0,0,0.1);
 }
 
 .btn-outline {
