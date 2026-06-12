@@ -92,6 +92,8 @@ const i18n = {
     'config.account': 'Dados da Conta',
     'config.biz_name': 'Nome do Negócio',
     'config.biz_name_hint': 'Nome exibido no aplicativo',
+    'config.phone': 'Telefone WhatsApp',
+    'config.phone_hint': 'Número vinculado ao agente. Não pode ser alterado.',
     'config.email': 'E-mail',
     'config.save': 'Salvar',
     'config.saving': 'Salvando…',
@@ -184,6 +186,8 @@ const i18n = {
     'config.account': 'Account Details',
     'config.biz_name': 'Business Name',
     'config.biz_name_hint': 'Name shown in application',
+    'config.phone': 'WhatsApp Phone',
+    'config.phone_hint': 'Number linked to the agent. Cannot be changed.',
     'config.email': 'Email',
     'config.save': 'Save',
     'config.saving': 'Saving…',
@@ -1161,6 +1165,14 @@ function renderConfigAccount(profile) {
         <div class="config-field-hint">${t('config.biz_name_hint')}</div>
       </div>
       <input class="form-input" id="cfg-biz-name" type="text" value="${escapeHtml(profile.business_name || '')}">
+    </div>
+    <div class="config-field-row">
+      <div>
+        <div class="config-field-label">${t('config.phone')}</div>
+        <div class="config-field-hint">${t('config.phone_hint')}</div>
+      </div>
+      <input class="form-input" value="${escapeHtml(profile.business_phone || '')}" readonly
+             style="background:var(--bg-canvas);cursor:default;color:var(--text-secondary)">
     </div>
     <div class="config-field-row">
       <div class="config-field-label">${t('config.email')}</div>
