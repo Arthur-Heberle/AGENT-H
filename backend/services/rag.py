@@ -4,6 +4,7 @@ from zoneinfo import ZoneInfo
 
 from asyncpg import Pool
 
+from core.config import settings
 from models.process import ChatMessage, ProcessOut
 from repositories.products import similarity_search
 from services.embedding import embed
@@ -92,7 +93,20 @@ async def process_message(
 
     query = _build_query(messages)
     vector = await embed(query)
-    products = await similarity_search(pool, business_phone, vector)
+    retrieved = await similarity_search(pool, business_phone, vector)
+
+    products = [p for p in retrieved if (p["similarity"] or 0) >= settings.MIN_SIMILARITY]
+    dropped = len(retrieved) - len(products)
+    logger.info(
+        "RAG business=%s query=%r retrieved=%d kept=%d dropped=%d (min_similarity=%.2f): %s",
+        business_phone,
+        query,
+        len(retrieved),
+        len(products),
+        dropped,
+        settings.MIN_SIMILARITY,
+        [(p["name"], round(p["similarity"] or 0, 3)) for p in retrieved],
+    )
 
     products_block = f"\n\nProdutos disponíveis:\n{_format_products(products)}"
     system_content = base_prompt + lang_instruction + products_block + _CLASSIFICATION_SUFFIX

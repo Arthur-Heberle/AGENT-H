@@ -10,6 +10,7 @@ class Settings(BaseSettings):
     LLM_MODEL: str
     PROCESS_SECRET: str
     DEFAULT_BUSINESS_PHONE: str
+    MIN_SIMILARITY: float = 0.30  # products below this cosine similarity are not sent to the LLM
     JWT_SECRET: str
     JWT_EXPIRY_HOURS: int
     EVOLUTION_API_URL: str = ""

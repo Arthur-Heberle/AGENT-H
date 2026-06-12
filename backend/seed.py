@@ -11,6 +11,7 @@ import asyncio
 import asyncpg
 
 from core.config import settings
+from core.phone import normalize_phone
 from core.security import hash_password
 
 import os
@@ -24,6 +25,7 @@ BUSINESS_NAME = os.getenv("BUSINESS_NAME")
 
 
 async def seed():
+    business_phone = normalize_phone(settings.DEFAULT_BUSINESS_PHONE)
     conn = await asyncpg.connect(settings.DATABASE_URL)
     try:
         await conn.execute(
@@ -37,7 +39,7 @@ async def seed():
             """,
             EMAIL,
             hash_password(PASSWORD),
-            settings.DEFAULT_BUSINESS_PHONE,
+            business_phone,
             BUSINESS_NAME,
         )
         # default per-client settings row (business_hours/system_prompt use table defaults)
@@ -47,9 +49,9 @@ async def seed():
             VALUES ($1)
             ON CONFLICT (business_phone) DO NOTHING
             """,
-            settings.DEFAULT_BUSINESS_PHONE,
+            business_phone,
         )
-        print(f"Seeded client: {EMAIL}  (business_phone={settings.DEFAULT_BUSINESS_PHONE})")
+        print(f"Seeded client: {EMAIL}  (business_phone={business_phone})")
         print(f"Login with:  {EMAIL} / {PASSWORD}")
     finally:
         await conn.close()

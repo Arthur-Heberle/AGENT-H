@@ -1,5 +1,3 @@
-import json
-
 from asyncpg import Pool
 from fastapi import HTTPException
 
@@ -22,7 +20,8 @@ async def get_settings(pool: Pool, business_phone: str) -> SettingsOut:
 
 
 async def upsert_settings(pool: Pool, business_phone: str, data: SettingsIn) -> SettingsOut:
-    hours_json = json.dumps(data.business_hours.model_dump())
+    # jsonb codec on the pool encodes dicts; passing a pre-dumped string would double-encode
+    hours = data.business_hours.model_dump()
     await pool.execute(
         """
         INSERT INTO client_settings (business_phone, system_prompt, ai_language, business_hours, updated_at)
@@ -33,7 +32,7 @@ async def upsert_settings(pool: Pool, business_phone: str, data: SettingsIn) -> 
         business_phone,
         data.system_prompt,
         data.ai_language,
-        hours_json,
+        hours,
     )
     return await get_settings(pool, business_phone)
 

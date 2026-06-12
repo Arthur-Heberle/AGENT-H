@@ -4,6 +4,7 @@ from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 
 from core.config import settings
 from core.database import get_pool
+from core.phone import normalize_phone
 from core.security import decode_token
 
 _bearer = HTTPBearer(auto_error=False)
@@ -19,9 +20,9 @@ async def get_business_phone(
     if creds:
         phone = decode_token(creds.credentials)
         if phone:
-            return phone
+            return normalize_phone(phone)
     # TODO: remove this fallback once all clients are using JWT auth
-    return settings.DEFAULT_BUSINESS_PHONE
+    return normalize_phone(settings.DEFAULT_BUSINESS_PHONE)
 
 
 async def require_auth(
@@ -32,7 +33,7 @@ async def require_auth(
     phone = decode_token(creds.credentials)
     if not phone:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid or expired token")
-    return phone
+    return normalize_phone(phone)
 
 
 async def require_process_secret(

@@ -5,6 +5,7 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from pydantic import BaseModel
 
 from core.database import get_pool
+from core.phone import normalize_phone
 from core.security import create_token, hash_password, verify_password
 from services.sms import send_otp
 
@@ -12,16 +13,6 @@ router = APIRouter()
 
 # In-memory OTP store: phone → {code, expires_at, data:{name,email,password_hash}}
 _otp_store: dict[str, dict] = {}
-
-
-def _normalize_phone(phone: str) -> str:
-    """Normalize to Evolution API format: digits only, 55+DDD(2)+local(8) = 12 digits.
-    Strips the 9th-digit mobile prefix if present: 55+DDD(2)+9+local(8) → 55+DDD(2)+local(8).
-    """
-    digits = phone.lstrip('+')
-    if digits.startswith('55') and len(digits) == 13:
-        digits = digits[:4] + digits[5:]
-    return digits
 
 
 # ── Models ─────────────────────────────────────────────────────────────────
@@ -61,8 +52,9 @@ async def login(body: LoginIn, pool=Depends(get_pool)):
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Invalid email or password",
         )
-    token = create_token(row["business_phone"])
-    return LoginOut(token=token, business_phone=row["business_phone"])
+    phone = normalize_phone(row["business_phone"])
+    token = create_token(phone)
+    return LoginOut(token=token, business_phone=phone)
 
 
 @router.post("/api/auth/logout")
@@ -72,7 +64,7 @@ async def logout():
 
 @router.post("/api/auth/register")
 async def register(body: RegisterIn, pool=Depends(get_pool)):
-    body = body.model_copy(update={"phone": _normalize_phone(body.phone)})
+    body = body.model_copy(update={"phone": normalize_phone(body.phone)})
     phone_exists = await pool.fetchval(
         "SELECT 1 FROM clients WHERE business_phone = $1", body.phone
     )
@@ -104,6 +96,7 @@ async def register(body: RegisterIn, pool=Depends(get_pool)):
 
 @router.post("/api/auth/verify-otp", response_model=LoginOut)
 async def verify_otp(body: VerifyOTPIn, pool=Depends(get_pool)):
+    body = body.model_copy(update={"phone": normalize_phone(body.phone)})
     entry = _otp_store.get(body.phone)
     if not entry:
         raise HTTPException(status_code=404, detail="No pending registration for this phone")

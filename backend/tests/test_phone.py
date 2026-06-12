@@ -1,0 +1,33 @@
+from core.phone import normalize_phone
+
+
+def test_strips_plus_prefix():
+    assert normalize_phone("+5549988788878") == "554988788878"
+
+
+def test_removes_brazilian_ninth_digit():
+    # 55 + DDD 49 + 9 9194-2504 (13 digits) -> ninth digit dropped
+    assert normalize_phone("5549991942504") == "554991942504"
+
+
+def test_already_canonical_unchanged():
+    assert normalize_phone("554991942504") == "554991942504"
+
+
+def test_strips_formatting_characters():
+    assert normalize_phone("+55 (49) 99194-2504") == "554991942504"
+
+
+def test_non_brazilian_number_only_digits():
+    # US number: just strip non-digits, never drop digits
+    assert normalize_phone("+1 415 555 2671") == "14155552671"
+
+
+def test_brazilian_13_digits_without_9_in_fifth_position_unchanged():
+    # 13 digits starting 55 but fifth digit not 9 -> leave digits as-is
+    assert normalize_phone("5549881942504") == "5549881942504"
+
+
+def test_empty_and_none_safe():
+    assert normalize_phone("") == ""
+    assert normalize_phone(None) == ""

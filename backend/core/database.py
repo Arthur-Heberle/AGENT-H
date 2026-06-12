@@ -1,3 +1,4 @@
+import json
 import os
 
 import asyncpg
@@ -22,6 +23,11 @@ async def get_pool() -> asyncpg.Pool:
 
 async def _init_connection(conn: asyncpg.Connection) -> None:
     await register_vector(conn)
+    # asyncpg returns json/jsonb as str by default; decode to Python objects
+    for pg_type in ("json", "jsonb"):
+        await conn.set_type_codec(
+            pg_type, encoder=json.dumps, decoder=json.loads, schema="pg_catalog"
+        )
 
 
 async def close_pool() -> None:
