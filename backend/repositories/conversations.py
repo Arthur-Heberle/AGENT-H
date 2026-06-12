@@ -11,22 +11,28 @@ async def list_conversations(
     rows = await pool.fetch(
         """
         SELECT
-            c.customer_phone,
+            all_customers.customer_phone,
             c.customer_name,
-            c.ai_enabled,
-            m.message      AS last_message,
-            m.created_at   AS last_message_time
-        FROM conversations c
-        LEFT JOIN LATERAL (
+            COALESCE(c.ai_enabled, TRUE) AS ai_enabled,
+            last_m.message      AS last_message,
+            last_m.created_at   AS last_message_time
+        FROM (
+            SELECT DISTINCT customer_phone
+            FROM messages
+            WHERE business_phone = $1
+        ) AS all_customers
+        JOIN LATERAL (
             SELECT message, created_at
             FROM messages
-            WHERE customer_phone = c.customer_phone
-              AND business_phone  = c.business_phone
+            WHERE customer_phone = all_customers.customer_phone
+              AND business_phone  = $1
             ORDER BY created_at DESC
             LIMIT 1
-        ) m ON true
-        WHERE c.business_phone = $1
-        ORDER BY m.created_at DESC NULLS LAST
+        ) last_m ON true
+        LEFT JOIN conversations c
+            ON c.customer_phone = all_customers.customer_phone
+            AND c.business_phone = $1
+        ORDER BY last_m.created_at DESC NULLS LAST
         LIMIT $2
         """,
         business_phone,

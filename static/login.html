@@ -155,6 +155,14 @@
       margin: 0;
     }
 
+    .phone-ddd {
+      flex: 0 0 52px !important;
+      width: 52px;
+      text-align: center;
+      padding-left: 8px !important;
+      padding-right: 8px !important;
+    }
+
     /* ── Password eye toggle ─────────────────────────────────── */
     .pw-wrap {
       position: relative;
@@ -252,8 +260,11 @@
               <label class="login-label" for="reg-phone" id="label-phone">WhatsApp / Telefone</label>
               <div class="phone-wrap">
                 <span class="phone-prefix">+55</span>
-                <input type="tel" id="reg-phone" name="phone" class="login-input" placeholder="49 99999-9999"
-                  autocomplete="tel" required />
+                <input type="tel" id="reg-ddd" class="login-input phone-ddd" placeholder="49"
+                  maxlength="2" inputmode="numeric" autocomplete="tel-area-code" required />
+                <span class="phone-prefix">9</span>
+                <input type="tel" id="reg-phone" name="phone" class="login-input" placeholder="91942504"
+                  maxlength="8" inputmode="numeric" autocomplete="tel-local" required />
               </div>
             </div>
             <div class="login-input-group">
@@ -488,13 +499,16 @@
 
       function doRegister() {
         hideBanner();
-        const rawPhone = document.getElementById('reg-phone').value.trim();
-        const phone = '+55' + rawPhone.replace(/\D/g, '');
+        const ddd = document.getElementById('reg-ddd').value.replace(/\D/g, '');
+        const localNumber = document.getElementById('reg-phone').value.replace(/\D/g, '');
         const name = document.getElementById('reg-name').value.trim();
         const email = document.getElementById('reg-email').value.trim();
         const password = document.getElementById('reg-password').value;
 
-        if (!rawPhone || !name || !email || !password) { showError(t('errRequired')); return; }
+        if (!ddd || !localNumber || !name || !email || !password) { showError(t('errRequired')); return; }
+        if (ddd.length !== 2 || localNumber.length !== 8) { showError(t('errPhone')); return; }
+
+        const phone = '+55' + ddd + localNumber;
 
         registerBtn.disabled = true;
         registerBtn.textContent = '…';

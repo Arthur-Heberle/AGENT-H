@@ -65,6 +65,20 @@ DO $$ BEGIN
   END IF;
 END $$;
 
+-- Normalize Brazilian mobile numbers: strip the 9th-digit mobile prefix added in 2012.
+-- Evolution API stores numbers without it: 55+DDD(2)+local(8) = 12 digits.
+-- Registrations done before this fix may have 13-digit format: 55+DDD(2)+9+local(8).
+DO $$
+BEGIN
+  UPDATE clients
+  SET business_phone = LEFT(business_phone, 4) || SUBSTRING(business_phone FROM 6)
+  WHERE LENGTH(business_phone) = 13 AND LEFT(business_phone, 2) = '55';
+
+  UPDATE client_settings
+  SET business_phone = LEFT(business_phone, 4) || SUBSTRING(business_phone FROM 6)
+  WHERE LENGTH(business_phone) = 13 AND LEFT(business_phone, 2) = '55';
+END $$;
+
 CREATE TABLE IF NOT EXISTS client_settings (
   business_phone  VARCHAR(30)  PRIMARY KEY,  -- no FK: avoids creation failure on DBs missing the UNIQUE constraint above
   system_prompt   TEXT,

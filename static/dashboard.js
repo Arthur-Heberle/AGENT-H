@@ -326,9 +326,9 @@ function volume7dToChartData(volume7d) {
 }
 
 function msgCssRole(role) {
-  if (role === 'assistant') return 'ai';
-  if (role === 'owner') return 'ai';
-  return role;
+  const r = (role || '').replace(/"/g, '').trim().toLowerCase();
+  if (['assistant', 'owner', 'employee', 'business'].includes(r)) return 'ai';
+  return 'customer';
 }
 
 /* ── ROUTER ───────────────────────────────────────────────── */

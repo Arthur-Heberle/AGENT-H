@@ -14,6 +14,16 @@ router = APIRouter()
 _otp_store: dict[str, dict] = {}
 
 
+def _normalize_phone(phone: str) -> str:
+    """Normalize to Evolution API format: digits only, 55+DDD(2)+local(8) = 12 digits.
+    Strips the 9th-digit mobile prefix if present: 55+DDD(2)+9+local(8) → 55+DDD(2)+local(8).
+    """
+    digits = phone.lstrip('+')
+    if digits.startswith('55') and len(digits) == 13:
+        digits = digits[:4] + digits[5:]
+    return digits
+
+
 # ── Models ─────────────────────────────────────────────────────────────────
 
 class LoginIn(BaseModel):
@@ -62,6 +72,7 @@ async def logout():
 
 @router.post("/api/auth/register")
 async def register(body: RegisterIn, pool=Depends(get_pool)):
+    body = body.model_copy(update={"phone": _normalize_phone(body.phone)})
     phone_exists = await pool.fetchval(
         "SELECT 1 FROM clients WHERE business_phone = $1", body.phone
     )
