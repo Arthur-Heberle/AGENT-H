@@ -18,6 +18,8 @@ async def get_stats(pool: Pool, business_phone: str) -> StatsOut:
             COUNT(DISTINCT CASE WHEN created_at::date = CURRENT_DATE - 1 THEN customer_phone END) AS yesterday
         FROM messages
         WHERE business_phone = $1 AND role = 'customer'
+          -- private 1:1 chats only: excludes group JIDs and broadcasts
+          AND customer_phone ~ '^[0-9]{8,14}$'
           AND created_at >= CURRENT_DATE - 1
         """,
         business_phone,
@@ -41,6 +43,7 @@ async def get_stats(pool: Pool, business_phone: str) -> StatsOut:
         ) a ON true
         WHERE c.business_phone = $1
           AND c.role = 'customer'
+          AND c.customer_phone ~ '^[0-9]{8,14}$'
           AND c.created_at::date = CURRENT_DATE
         """,
         business_phone,
@@ -52,7 +55,8 @@ async def get_stats(pool: Pool, business_phone: str) -> StatsOut:
         """
         SELECT COUNT(DISTINCT customer_phone) AS cnt
         FROM messages
-        WHERE business_phone = $1 AND role = 'owner'
+        WHERE business_phone = $1 AND role IN ('owner', 'business', 'employee')
+          AND customer_phone ~ '^[0-9]{8,14}$'
           AND created_at::date = CURRENT_DATE
         """,
         business_phone,
@@ -67,6 +71,7 @@ async def get_stats(pool: Pool, business_phone: str) -> StatsOut:
             COUNT(DISTINCT CASE WHEN created_at::date = CURRENT_DATE - 1 THEN customer_phone END) AS yesterday
         FROM messages
         WHERE business_phone = $1 AND classification = 'QUALIFIED_LEAD'
+          AND customer_phone ~ '^[0-9]{8,14}$'
           AND created_at >= CURRENT_DATE - 1
         """,
         business_phone,
@@ -81,6 +86,7 @@ async def get_stats(pool: Pool, business_phone: str) -> StatsOut:
         FROM messages
         WHERE business_phone = $1
           AND role = 'customer'
+          AND customer_phone ~ '^[0-9]{8,14}$'
           AND created_at >= CURRENT_DATE - 6
         GROUP BY created_at::date
         ORDER BY date ASC

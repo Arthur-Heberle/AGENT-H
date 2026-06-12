@@ -28,6 +28,9 @@ CREATE INDEX IF NOT EXISTS idx_messages_conversation
 -- Idempotent migration: classification column added after initial deploy
 ALTER TABLE messages ADD COLUMN IF NOT EXISTS classification VARCHAR(30);
 
+-- Idempotent migration: some n8n writes stored the role JSON-quoted ('"customer"')
+UPDATE messages SET role = btrim(role, '"') WHERE role LIKE '"%"';
+
 CREATE TABLE IF NOT EXISTS products (
   id             SERIAL        PRIMARY KEY,
   business_phone VARCHAR(30)   NOT NULL,

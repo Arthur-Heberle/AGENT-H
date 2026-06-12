@@ -20,6 +20,8 @@ async def list_conversations(
             SELECT DISTINCT customer_phone
             FROM messages
             WHERE business_phone = $1
+              -- private 1:1 chats only: excludes group JIDs (120363..., number-timestamp) and broadcasts
+              AND customer_phone ~ '^[0-9]{8,14}$'
         ) AS all_customers
         JOIN LATERAL (
             SELECT message, created_at

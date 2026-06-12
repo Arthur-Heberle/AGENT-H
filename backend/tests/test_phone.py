@@ -1,4 +1,4 @@
-from core.phone import normalize_phone
+from core.phone import is_private_phone, normalize_phone
 
 
 def test_strips_plus_prefix():
@@ -31,3 +31,31 @@ def test_brazilian_13_digits_without_9_in_fifth_position_unchanged():
 def test_empty_and_none_safe():
     assert normalize_phone("") == ""
     assert normalize_phone(None) == ""
+
+
+def test_private_phone_brazilian_numbers():
+    assert is_private_phone("554991942504") is True
+    assert is_private_phone("5549991942504") is True
+
+
+def test_private_phone_international_number():
+    assert is_private_phone("14155552671") is True
+
+
+def test_group_id_is_not_private():
+    # modern WhatsApp group JIDs are 18-digit IDs
+    assert is_private_phone("120363038135166547") is False
+
+
+def test_legacy_group_id_is_not_private():
+    # legacy group JIDs are number-timestamp
+    assert is_private_phone("554195465161-1593219120") is False
+
+
+def test_broadcast_is_not_private():
+    assert is_private_phone("status@broadcast") is False
+
+
+def test_empty_is_not_private():
+    assert is_private_phone("") is False
+    assert is_private_phone(None) is False
