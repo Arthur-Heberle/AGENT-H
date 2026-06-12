@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException, status
 
 from categories import DEFAULT_CATEGORIES
-from core.deps import get_business_phone, get_db
+from core.deps import require_auth, get_db
 from models.product import ProductIn, ProductOut
 from repositories.products import (
     get_custom_categories,
@@ -16,7 +16,7 @@ router = APIRouter()
 @router.get("/products", response_model=list[ProductOut])
 async def get_products(
     pool=Depends(get_db),
-    business_phone: str = Depends(get_business_phone),
+    business_phone: str = Depends(require_auth),
 ):
     return await list_products(pool, business_phone)
 
@@ -25,7 +25,7 @@ async def get_products(
 async def add_product(
     data: ProductIn,
     pool=Depends(get_db),
-    business_phone: str = Depends(get_business_phone),
+    business_phone: str = Depends(require_auth),
 ):
     return await create_product(pool, business_phone, data)
 
@@ -35,7 +35,7 @@ async def edit_product(
     product_id: int,
     data: ProductIn,
     pool=Depends(get_db),
-    business_phone: str = Depends(get_business_phone),
+    business_phone: str = Depends(require_auth),
 ):
     result = await update_product(pool, product_id, business_phone, data)
     if result is None:
@@ -47,7 +47,7 @@ async def edit_product(
 async def delete_product(
     product_id: int,
     pool=Depends(get_db),
-    business_phone: str = Depends(get_business_phone),
+    business_phone: str = Depends(require_auth),
 ):
     ok = await soft_delete_product(pool, product_id, business_phone)
     if not ok:
@@ -58,7 +58,7 @@ async def delete_product(
 @router.get("/categories", response_model=list[str])
 async def get_categories(
     pool=Depends(get_db),
-    business_phone: str = Depends(get_business_phone),
+    business_phone: str = Depends(require_auth),
 ):
     custom = await get_custom_categories(pool, business_phone)
     merged = list(dict.fromkeys(DEFAULT_CATEGORIES + custom))

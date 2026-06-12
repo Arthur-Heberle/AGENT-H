@@ -43,15 +43,15 @@ Mounts `/static` directory. Serves `/dashboard` and `/login` HTML pages.
 | POST | `/api/auth/logout` | None | — | Clears session (client-side only) |
 | POST | `/api/auth/register` | None | `sms.send_otp()` | Start OTP flow |
 | POST | `/api/auth/verify-otp` | None | — | Complete registration, return JWT |
-| GET | `/api/conversations` | JWT soft | `stats_service` | List conversations (JOIN last message) |
-| GET | `/api/conversations/{phone}/messages` | JWT soft | — | Full message history |
-| PUT | `/api/conversations/{phone}/toggle-ai` | JWT soft | — | Toggle `ai_enabled` flag |
-| GET | `/api/products` | JWT soft | — | List active products |
-| POST | `/api/products` | JWT soft | `product_service.create_product()` | Create + embed |
-| PUT | `/api/products/{id}` | JWT soft | `product_service.update_product()` | Update + conditionally re-embed |
-| DELETE | `/api/products/{id}` | JWT soft | — | Soft delete (active=false) |
-| GET | `/api/categories` | JWT soft | — | Default + custom categories merged |
-| GET | `/api/stats` | JWT soft | `stats_service.get_stats()` | KPI metrics |
+| GET | `/api/conversations` | JWT required | `stats_service` | List conversations (JOIN last message) |
+| GET | `/api/conversations/{phone}/messages` | JWT required | — | Full message history |
+| PUT | `/api/conversations/{phone}/toggle-ai` | JWT required | — | Toggle `ai_enabled` flag |
+| GET | `/api/products` | JWT required | — | List active products |
+| POST | `/api/products` | JWT required | `product_service.create_product()` | Create + embed |
+| PUT | `/api/products/{id}` | JWT required | `product_service.update_product()` | Update + conditionally re-embed |
+| DELETE | `/api/products/{id}` | JWT required | — | Soft delete (active=false) |
+| GET | `/api/categories` | JWT required | — | Default + custom categories merged |
+| GET | `/api/stats` | JWT required | `stats_service.get_stats()` | KPI metrics |
 | GET | `/api/profile` | JWT required | — | Business profile |
 | PUT | `/api/profile` | JWT required | — | Update business name |
 | DELETE | `/api/account` | JWT required | — | Delete account (cascades) |
@@ -60,19 +60,16 @@ Mounts `/static` directory. Serves `/dashboard` and `/login` HTML pages.
 | POST | `/process` | X-Process-Secret | `rag.process_message()` | n8n RAG call |
 | GET | `/health` | None | — | `{"status": "ok"}` |
 
-**"JWT soft"** = auth is attempted but not required; falls back to `DEFAULT_BUSINESS_PHONE` env var.  
-**"JWT required"** = 401 if no valid token.
+**"JWT required"** = 401 if no valid token. There is no fallback tenant: every dashboard
+endpoint resolves `business_phone` from the JWT only (`DEFAULT_BUSINESS_PHONE` is used
+solely by `seed.py`). The frontend redirects to `/login` on any 401.
 
 ## Authentication Pattern
 
 ```python
 # core/deps.py
-async def get_business_phone(token: str = Depends(oauth2_scheme)) -> str:
-    # Decodes JWT → returns business_phone (JWT sub claim)
-    # Falls back to DEFAULT_BUSINESS_PHONE if no token
-
 async def require_auth(token: str = Depends(oauth2_scheme)) -> str:
-    # Same but raises 401 if token missing/invalid
+    # Decodes JWT → returns normalized business_phone (sub claim); 401 if missing/invalid
 
 async def require_process_secret(secret: str = Header(alias="X-Process-Secret")) -> str:
     # Used only on /process endpoint — shared secret with n8n
@@ -86,7 +83,7 @@ OTP storage is **in-memory** (`dict` in `api/routes/auth.py`): `{phone: {code, e
 
 1. Load `client_settings` (system prompt, language, business hours)
 2. Check business hours (São Paulo timezone, `America/Sao_Paulo`) — returns canned out-of-hours reply if closed
-3. Build query string from last 3 customer messages
+3. Build query string from the `in_progress` customer messages (legacy payloads without `processing_status`: last 3 customer messages)
 4. `embedding.embed(query)` → 1536-dim float list
 5. `products_repo.similarity_search(vector, business_phone, limit=8)` → pgvector cosine distance
 6. Assemble prompt: custom system prompt + formatted product block + classification instructions
@@ -120,7 +117,7 @@ async def list_products(conn: asyncpg.Connection, business_phone: str) -> list[a
 | `core/config.py` | Pydantic `Settings` class — loads all env vars. Import: `from core.config import settings` |
 | `core/database.py` | Creates asyncpg pool (`init_db()`), stores in `app.state.db`. `get_db()` yields a connection. Runs `schema.sql` on startup. |
 | `core/security.py` | `hash_password(plain)`, `verify_password(plain, hashed)`, `create_token(business_phone)`, `decode_token(token)` |
-| `core/deps.py` | FastAPI dependencies: `get_db`, `get_business_phone`, `require_auth`, `require_process_secret` |
+| `core/deps.py` | FastAPI dependencies: `get_db`, `require_auth`, `require_process_secret` |
 
 ## Services Reference
 

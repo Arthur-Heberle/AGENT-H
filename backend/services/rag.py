@@ -42,6 +42,19 @@ def _is_open(business_hours: dict) -> bool:
     return day.get("open", "00:00") <= current <= day.get("close", "23:59")
 
 
+def _split_messages(
+    messages: list[ChatMessage],
+) -> tuple[list[ChatMessage], list[ChatMessage]] | None:
+    """Partition by processing_status: answer only 'in_progress', drop 'pending',
+    everything else ('done' or missing status) is conversation context.
+    Returns None for legacy payloads where no message carries a status."""
+    if not any(m.processing_status for m in messages):
+        return None
+    context = [m for m in messages if m.processing_status not in ("in_progress", "pending")]
+    to_answer = [m for m in messages if m.processing_status == "in_progress"]
+    return context, to_answer
+
+
 def _build_query(messages: list[ChatMessage]) -> str:
     customer_msgs = [m for m in messages if m.role in ("user", "customer")]
     last_few = customer_msgs[-3:]
@@ -91,7 +104,27 @@ async def process_message(
     else:
         lang_instruction = ""
 
-    query = _build_query(messages)
+    split = _split_messages(messages)
+    if split is not None:
+        context_msgs, to_answer = split
+        if not to_answer:
+            logger.warning("process: no in_progress message for business=%s — skipping LLM", business_phone)
+            return ProcessOut(reply="", classification="OUT_OF_SCOPE")
+        query = (
+            " ".join(m.content for m in to_answer if m.role in ("user", "customer"))
+            or " ".join(m.content for m in to_answer)
+        )
+        prompt_messages = context_msgs + to_answer
+        answer_note = (
+            "\nAs mensagens anteriores da conversa já foram respondidas; "
+            "responda APENAS às últimas mensagens do cliente."
+        )
+    else:
+        # legacy payload without processing_status: keep previous behavior
+        query = _build_query(messages)
+        prompt_messages = messages
+        answer_note = ""
+
     vector = await embed(query)
     retrieved = await similarity_search(pool, business_phone, vector)
 
@@ -109,10 +142,10 @@ async def process_message(
     )
 
     products_block = f"\n\nProdutos disponíveis:\n{_format_products(products)}"
-    system_content = base_prompt + lang_instruction + products_block + _CLASSIFICATION_SUFFIX
+    system_content = base_prompt + lang_instruction + answer_note + products_block + _CLASSIFICATION_SUFFIX
 
     llm_messages = [{"role": "system", "content": system_content}]
-    for m in messages:
+    for m in prompt_messages:
         llm_messages.append({"role": m.role if m.role == "user" else "assistant", "content": m.content})
 
     raw_reply = await chat(llm_messages)

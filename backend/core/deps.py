@@ -14,17 +14,6 @@ async def get_db() -> asyncpg.Pool:
     return await get_pool()
 
 
-async def get_business_phone(
-    creds: HTTPAuthorizationCredentials | None = Depends(_bearer),
-) -> str:
-    if creds:
-        phone = decode_token(creds.credentials)
-        if phone:
-            return normalize_phone(phone)
-    # TODO: remove this fallback once all clients are using JWT auth
-    return normalize_phone(settings.DEFAULT_BUSINESS_PHONE)
-
-
 async def require_auth(
     creds: HTTPAuthorizationCredentials | None = Depends(_bearer),
 ) -> str:

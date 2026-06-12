@@ -304,6 +304,11 @@ async function realAPI(endpoint, opts = {}) {
     headers: API_HEADERS(),
     body: opts.body ? JSON.stringify(opts.body) : undefined,
   });
+  if (res.status === 401) {
+    localStorage.removeItem('agente_token');
+    window.location.href = '/login';
+    throw new Error('Session expired');
+  }
   if (!res.ok) throw new Error(await res.text());
   return res.json();
 }
