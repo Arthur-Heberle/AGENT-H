@@ -86,10 +86,28 @@ const i18n = {
     'settings.soon_sub': 'Personalizações de horário, tom de voz e integrações estarão aqui.',
     'nav.config_general': 'Geral',
     'nav.config_theme': 'Tema do Aplicativo',
+    'nav.config_agent': 'Agente IA',
+    'nav.config_hours': 'Horários de Atendimento',
     'config.theme': 'Tema do Aplicativo',
     'config.theme_default': 'Padrão (Ouro)',
     'config.theme_soft_black': 'Preto Suave',
     'config.theme_light_brown': 'Marrom Claro',
+    'config.agent_prompt': 'Prompt do Sistema',
+    'config.agent_prompt_hint': 'Instruções de personalidade e contexto para o agente. Máximo 2000 caracteres.',
+    'config.agent_lang': 'Idioma das Respostas',
+    'config.agent_lang_auto': 'Automático (detecta o cliente)',
+    'config.agent_lang_pt': 'Português',
+    'config.agent_lang_en': 'English',
+    'config.hours_title': 'Horários por Dia da Semana',
+    'config.hours_open': 'Abertura',
+    'config.hours_close': 'Fechamento',
+    'config.day_mon': 'Seg',
+    'config.day_tue': 'Ter',
+    'config.day_wed': 'Qua',
+    'config.day_thu': 'Qui',
+    'config.day_fri': 'Sex',
+    'config.day_sat': 'Sáb',
+    'config.day_sun': 'Dom',
     'config.account': 'Dados da Conta',
     'config.biz_name': 'Nome do Negócio',
     'config.biz_name_hint': 'Nome exibido no aplicativo',
@@ -181,10 +199,28 @@ const i18n = {
     'settings.soon_sub': 'Business hours, tone, and integrations will be configured here.',
     'nav.config_general': 'General',
     'nav.config_theme': 'Application Theme',
+    'nav.config_agent': 'AI Agent',
+    'nav.config_hours': 'Business Hours',
     'config.theme': 'App Theme',
     'config.theme_default': 'Default (Gold)',
     'config.theme_soft_black': 'Soft Black',
     'config.theme_light_brown': 'Light Brown',
+    'config.agent_prompt': 'System Prompt',
+    'config.agent_prompt_hint': 'Personality and context instructions for the agent. Max 2000 characters.',
+    'config.agent_lang': 'Response Language',
+    'config.agent_lang_auto': 'Automatic (detects customer)',
+    'config.agent_lang_pt': 'Português',
+    'config.agent_lang_en': 'English',
+    'config.hours_title': 'Hours by Day of Week',
+    'config.hours_open': 'Open',
+    'config.hours_close': 'Close',
+    'config.day_mon': 'Mon',
+    'config.day_tue': 'Tue',
+    'config.day_wed': 'Wed',
+    'config.day_thu': 'Thu',
+    'config.day_fri': 'Fri',
+    'config.day_sat': 'Sat',
+    'config.day_sun': 'Sun',
     'config.account': 'Account Details',
     'config.biz_name': 'Business Name',
     'config.biz_name_hint': 'Name shown in application',
@@ -355,6 +391,8 @@ const ROUTES = {
   },
   '#/config/general': renderConfigGeneral,
   '#/config/theme': renderConfigThemeSection,
+  '#/config/agent': renderConfigAgent,
+  '#/config/hours': renderConfigHours,
 };
 
 function toggleSidebar() {
@@ -414,6 +452,8 @@ function router() {
     '#/catalogo': t('nav.catalog'),
     '#/config/general': t('nav.config_general'),
     '#/config/theme': t('nav.config_theme'),
+    '#/config/agent': t('nav.config_agent'),
+    '#/config/hours': t('nav.config_hours'),
   };
   const titleEl = document.getElementById('page-title');
   if (titleEl) titleEl.textContent = pageNames[hash] || '';
@@ -1390,6 +1430,174 @@ function renderConfig() {
   history.replaceState(null, '', '#/config/general');
   router();
 }
+
+/* ── SETTINGS CACHE ───────────────────────────────────────── */
+let _settings = null;
+
+async function loadSettings() {
+  if (_settings) return _settings;
+  _settings = await realAPI('/api/settings');
+  return _settings;
+}
+
+async function saveSettings() {
+  _settings = await realAPI('/api/settings', { method: 'PUT', body: _settings });
+  return _settings;
+}
+
+/* ── CONFIG / AGENT ───────────────────────────────────────── */
+function renderConfigAgent() {
+  const main = document.getElementById('main');
+  main.innerHTML = `
+    <div class="page-section">
+      <div class="page-header">
+        <h1 class="page-title-large font-display">${t('nav.config_agent')}</h1>
+      </div>
+      <div id="config-content">
+        <div class="card mb-24">${skBlock('100%', 120)}</div>
+      </div>
+    </div>`;
+
+  loadSettings()
+    .then(s => {
+      const charCount = (s.system_prompt || '').length;
+      const body = `
+        <div class="config-field-row" style="align-items:flex-start;gap:16px">
+          <div style="flex:0 0 auto">
+            <div class="config-field-label">${t('config.agent_prompt')}</div>
+            <div class="config-field-hint">${t('config.agent_prompt_hint')}</div>
+          </div>
+          <div style="flex:1;min-width:0">
+            <textarea id="cfg-prompt" class="form-input" rows="6" maxlength="2000"
+              style="width:100%;resize:vertical;font-size:13px;line-height:1.5"
+              >${escapeHtml(s.system_prompt || '')}</textarea>
+            <div style="text-align:right;font-size:12px;color:var(--text-tertiary);margin-top:4px">
+              <span id="cfg-prompt-count">${charCount}</span>/2000
+            </div>
+          </div>
+        </div>
+        <div class="config-field-row">
+          <div>
+            <div class="config-field-label">${t('config.agent_lang')}</div>
+          </div>
+          <select class="form-select" id="cfg-lang" style="width:220px">
+            <option value="auto" ${s.ai_language === 'auto' ? 'selected' : ''}>${t('config.agent_lang_auto')}</option>
+            <option value="pt" ${s.ai_language === 'pt' ? 'selected' : ''}>${t('config.agent_lang_pt')}</option>
+            <option value="en" ${s.ai_language === 'en' ? 'selected' : ''}>${t('config.agent_lang_en')}</option>
+          </select>
+        </div>`;
+      const footer = `<button class="btn btn-primary" id="cfg-agent-save">${t('config.save')}</button>`;
+      document.getElementById('config-content').innerHTML = _configCard(t('nav.config_agent'), body, footer);
+
+      document.getElementById('cfg-prompt')?.addEventListener('input', e => {
+        const el = document.getElementById('cfg-prompt-count');
+        if (el) el.textContent = e.target.value.length;
+      });
+
+      document.getElementById('cfg-agent-save')?.addEventListener('click', async () => {
+        const btn = document.getElementById('cfg-agent-save');
+        btn.disabled = true;
+        btn.textContent = t('config.saving');
+        try {
+          _settings.system_prompt = document.getElementById('cfg-prompt')?.value || null;
+          _settings.ai_language = document.getElementById('cfg-lang')?.value || 'auto';
+          await saveSettings();
+          showToast(t('config.saved'));
+        } catch {
+          showToast(t('config.save_error'), 'error');
+        } finally {
+          btn.disabled = false;
+          btn.textContent = t('config.save');
+        }
+      });
+    })
+    .catch(() => {
+      const el = document.getElementById('config-content');
+      if (el) el.innerHTML = errorBanner();
+    });
+}
+
+/* ── CONFIG / HOURS ───────────────────────────────────────── */
+const DAYS_ORDER = ['mon', 'tue', 'wed', 'thu', 'fri', 'sat', 'sun'];
+
+function renderConfigHours() {
+  const main = document.getElementById('main');
+  main.innerHTML = `
+    <div class="page-section">
+      <div class="page-header">
+        <h1 class="page-title-large font-display">${t('nav.config_hours')}</h1>
+      </div>
+      <div id="config-content">
+        <div class="card mb-24">${skBlock('100%', 200)}</div>
+      </div>
+    </div>`;
+
+  loadSettings()
+    .then(s => {
+      const bh = s.business_hours;
+      const rows = DAYS_ORDER.map(day => {
+        const d = bh[day] || { enabled: false, open: '09:00', close: '18:00' };
+        const dis = d.enabled ? '' : ' disabled';
+        return `
+          <div class="config-hours-row" data-day="${day}">
+            <input type="checkbox" id="cfg-hours-${day}-enabled" ${d.enabled ? 'checked' : ''}
+              style="width:18px;height:18px;accent-color:var(--gold);cursor:pointer"
+              onchange="toggleHoursRow('${day}')">
+            <div class="config-hours-day">${t('config.day_' + day)}</div>
+            <input type="time" id="cfg-hours-${day}-open" class="form-input" value="${escapeHtml(d.open)}"${dis}
+              style="font-size:13px;padding:6px 10px">
+            <input type="time" id="cfg-hours-${day}-close" class="form-input" value="${escapeHtml(d.close)}"${dis}
+              style="font-size:13px;padding:6px 10px">
+          </div>`;
+      }).join('');
+
+      const header = `
+        <div class="config-hours-row" style="font-size:12px;color:var(--text-tertiary);font-weight:500;padding-bottom:6px">
+          <div></div><div></div>
+          <div>${t('config.hours_open')}</div>
+          <div>${t('config.hours_close')}</div>
+        </div>`;
+      const body = `<div class="config-hours-grid">${header}${rows}</div>`;
+      const footer = `<button class="btn btn-primary" id="cfg-hours-save">${t('config.save')}</button>`;
+      document.getElementById('config-content').innerHTML = _configCard(t('config.hours_title'), body, footer);
+
+      document.getElementById('cfg-hours-save')?.addEventListener('click', async () => {
+        const btn = document.getElementById('cfg-hours-save');
+        btn.disabled = true;
+        btn.textContent = t('config.saving');
+        try {
+          const bh = {};
+          DAYS_ORDER.forEach(day => {
+            bh[day] = {
+              enabled: document.getElementById(`cfg-hours-${day}-enabled`)?.checked || false,
+              open: document.getElementById(`cfg-hours-${day}-open`)?.value || '09:00',
+              close: document.getElementById(`cfg-hours-${day}-close`)?.value || '18:00',
+            };
+          });
+          _settings.business_hours = bh;
+          await saveSettings();
+          showToast(t('config.saved'));
+        } catch {
+          showToast(t('config.save_error'), 'error');
+        } finally {
+          btn.disabled = false;
+          btn.textContent = t('config.save');
+        }
+      });
+    })
+    .catch(() => {
+      const el = document.getElementById('config-content');
+      if (el) el.innerHTML = errorBanner();
+    });
+}
+
+window.toggleHoursRow = function(day) {
+  const enabled = document.getElementById(`cfg-hours-${day}-enabled`)?.checked;
+  const openEl = document.getElementById(`cfg-hours-${day}-open`);
+  const closeEl = document.getElementById(`cfg-hours-${day}-close`);
+  if (openEl) openEl.disabled = !enabled;
+  if (closeEl) closeEl.disabled = !enabled;
+};
 
 /* ── INIT ─────────────────────────────────────────────────── */
 document.addEventListener('DOMContentLoaded', () => {
