@@ -17,7 +17,6 @@ CREATE TABLE IF NOT EXISTS messages (
   message           TEXT         NOT NULL,
   role              VARCHAR(20)  DEFAULT 'customer',  -- customer | assistant | employee
   processing_status VARCHAR(20)  DEFAULT 'pending',   -- pending | in_progress | done
-  classification    VARCHAR(30),                      -- QUALIFIED_LEAD | GENERAL_QUESTION | GREETING | OUT_OF_SCOPE
   created_at        TIMESTAMP    DEFAULT NOW()
 );
 CREATE INDEX IF NOT EXISTS idx_messages_status_time

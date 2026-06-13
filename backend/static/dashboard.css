@@ -632,6 +632,77 @@ th.num-center {
   font-variant-numeric: tabular-nums;
 }
 
+/* ── CARD LIST (mobile alternative to tables) ────────────── */
+.card-list {
+  display: none;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.item-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-card);
+  padding: 14px 16px;
+  cursor: pointer;
+  transition: background 150ms ease, border-color 150ms ease;
+}
+
+.item-card:active { background: var(--bg-hover); }
+
+.item-card-title {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin-bottom: 2px;
+}
+
+.item-card-sub {
+  font-size: 13px;
+  color: var(--text-secondary);
+  margin-bottom: 8px;
+}
+
+.item-card-preview {
+  font-size: 13px;
+  color: var(--text-secondary);
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  line-height: 1.4;
+  margin-bottom: 10px;
+}
+
+.item-card-footer {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.item-card-meta {
+  font-size: 13px;
+  color: var(--text-secondary);
+}
+
+.item-card-time {
+  font-size: 12px;
+  color: var(--text-tertiary);
+}
+
+.item-card-actions {
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.item-card-actions .btn-icon {
+  width: 40px;
+  height: 40px;
+}
+
 .row-actions {
   opacity: 0;
   transition: opacity 150ms ease;
@@ -820,11 +891,37 @@ th.num-center {
 }
 
 /* ── CONVERSATIONS PAGE ──────────────────────────────────── */
+.conversations-page {
+  margin: -32px;
+  height: calc(100vh - 60px);
+}
+
 .conversations-layout {
   display: flex;
   gap: 0;
   height: 100%;
   overflow: hidden;
+}
+
+.conv-back {
+  display: none;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  flex-shrink: 0;
+  background: none;
+  border: none;
+  border-radius: 8px;
+  color: var(--text-primary);
+  cursor: pointer;
+  transition: background 150ms ease;
+}
+
+.conv-back:hover,
+.conv-back:focus-visible {
+  background: var(--bg-hover);
+  outline: none;
 }
 
 .conv-list {
@@ -1053,6 +1150,10 @@ th.num-center {
   padding-bottom: 0;
   font-size: 13px;
 }
+
+.catalog-filters .filter-name { width: 180px; }
+.catalog-filters .filter-category { width: 170px; }
+.catalog-filters .filter-price { width: 105px; }
 
 /* ── DRAWER ──────────────────────────────────────────────── */
 .drawer-backdrop {
@@ -1371,6 +1472,8 @@ th.num-center {
   padding-top: 20px;
   border-top: 1px solid var(--border);
 }
+
+.cfg-theme-select { width: 200px; }
 
 /* Business Hours */
 .config-hours-grid {

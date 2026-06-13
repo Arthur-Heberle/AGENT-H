@@ -67,6 +67,7 @@ const i18n = {
     'error.generic': 'Erro ao carregar dados.',
     'btn.retry': 'Tentar novamente',
     'btn.open': 'Abrir',
+    'btn.back': 'Voltar',
     'btn.logout': 'Sair',
     'btn.edit': 'Editar',
     'btn.delete': 'Excluir',
@@ -161,6 +162,7 @@ const i18n = {
     'error.generic': 'Error loading data.',
     'btn.retry': 'Retry',
     'btn.open': 'Open',
+    'btn.back': 'Back',
     'btn.logout': 'Logout',
     'btn.edit': 'Edit',
     'btn.delete': 'Delete',
@@ -339,6 +341,8 @@ function msgCssRole(role) {
   if (['assistant', 'owner', 'employee', 'business'].includes(r)) return 'ai';
   return 'customer';
 }
+
+const isMobile = () => window.matchMedia('(max-width: 768px)').matches;
 
 /* ── ROUTER ───────────────────────────────────────────────── */
 const ROUTES = {
@@ -580,7 +584,7 @@ function renderOverview() {
           <div class="flex items-center justify-between mb-16">
             <span class="font-display text-20">${t('overview.chart')}</span>
           </div>
-          <div class="chart-wrap">${buildChart(volume7dToChartData(stats.volume_7d))}</div>`;
+          <div class="chart-wrap">${buildChart(volume7dToChartData(stats.volume_7d), Math.max(320, chartCard.clientWidth - 48))}</div>`;
       } else {
         chartCard.innerHTML = `
           <div class="flex items-center justify-between mb-16">
@@ -616,6 +620,19 @@ function renderOverview() {
         <td style="font-size:13px;color:var(--text-tertiary)">${escapeHtml(relTime(c.last_message_time))}</td>
         <td><button class="btn btn-ghost" style="padding:5px 14px;font-size:13px" onclick="navigate('#/conversas')">${t('btn.open')}</button></td>
       </tr>`).join('');
+    const cards = convs.slice(0, 10).map(c => `
+      <div class="item-card" onclick="navigate('#/conversas')">
+        <div class="item-card-title">${escapeHtml(c.customer_name || c.customer_phone)}</div>
+        <div class="item-card-sub">${escapeHtml(c.customer_phone)}</div>
+        <div class="item-card-preview">${escapeHtml(c.last_message || '')}</div>
+        <div class="item-card-footer">
+          ${pill(c.status)}
+          <span class="item-card-time">${escapeHtml(relTime(c.last_message_time))}</span>
+          <div class="item-card-actions">
+            <button class="btn btn-ghost" onclick="event.stopPropagation();navigate('#/conversas')">${t('btn.open')}</button>
+          </div>
+        </div>
+      </div>`).join('');
     recentCard.innerHTML = `
       <div class="flex items-center justify-between mb-16">
         <span class="font-display text-20">${t('overview.recent')}</span>
@@ -633,7 +650,8 @@ function renderOverview() {
           </thead>
           <tbody>${rows}</tbody>
         </table>
-      </div>`;
+      </div>
+      <div class="card-list">${cards}</div>`;
   }).catch(() => {
     const recentCard = document.getElementById('recent-card');
     if (recentCard) {
@@ -649,8 +667,8 @@ function renderOverview() {
 }
 
 /* ── SVG CHART ───────────────────────────────────────────── */
-function buildChart(data) {
-  const W = 800, H = 180, pad = { top: 16, right: 20, bottom: 32, left: 36 };
+function buildChart(data, width = 800) {
+  const W = width, H = 180, pad = { top: 16, right: 20, bottom: 32, left: 36 };
   const maxVal = Math.max(...data.map(d => d.val)) * 1.15;
   const xStep = (W - pad.left - pad.right) / (data.length - 1);
 
@@ -729,7 +747,7 @@ let selectedConvPhone = null;
 function renderConversas() {
   const main = document.getElementById('main');
   main.innerHTML = `
-    <div class="page-section" style="margin: -32px; height: calc(100vh - 60px);">
+    <div class="page-section conversations-page">
       <div class="conversations-layout">
         <div class="conv-list" id="conv-list">
           <div class="conv-list-header">${t('conversations.title')}</div>
@@ -777,11 +795,17 @@ function renderConversas() {
         item.classList.add('active');
         const conv = convs.find(c => c.customer_phone === selectedConvPhone);
         renderConvDetail(conv);
+        document.querySelector('.conversations-layout')?.classList.add('show-detail');
       });
     });
 
-    // Auto-select first
-    if (!selectedConvPhone && convs.length) {
+    // Auto-select first (desktop only — mobile lands on the list)
+    if (isMobile()) {
+      if (selectedConvPhone) {
+        const conv = convs.find(c => c.customer_phone === selectedConvPhone);
+        if (conv) renderConvDetail(conv);
+      }
+    } else if (!selectedConvPhone && convs.length) {
       selectedConvPhone = convs[0].customer_phone;
       listEl.querySelector('.conv-item')?.classList.add('active');
       renderConvDetail(convs[0]);
@@ -801,6 +825,11 @@ async function renderConvDetail(conv) {
 
   detail.innerHTML = `
     <div class="conv-detail-header">
+      <button class="conv-back" id="conv-back" aria-label="${t('btn.back')}" title="${t('btn.back')}">
+        <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M12.5 4L6.5 10l6 6"/>
+        </svg>
+      </button>
       <div>
         <div class="conv-detail-name">${escapeHtml(conv.customer_name || conv.customer_phone)}</div>
         <div class="conv-detail-phone">${escapeHtml(conv.customer_phone)}</div>
@@ -819,6 +848,11 @@ async function renderConvDetail(conv) {
     <div class="conv-messages" id="conv-messages">
       <div style="text-align:center;color:var(--text-tertiary);padding:24px;font-size:13px">Carregando…</div>
     </div>`;
+
+  // Mobile: back arrow returns to the conversation list
+  detail.querySelector('#conv-back')?.addEventListener('click', () => {
+    document.querySelector('.conversations-layout')?.classList.remove('show-detail');
+  });
 
   // Fetch messages from API
   try {
@@ -885,14 +919,14 @@ function renderCatalogo() {
         <h1 class="page-title-large font-display">${t('catalog.title')}</h1>
         <div class="catalog-header-actions">
           <div class="catalog-filters">
-            <input type="text" class="form-input" id="filter-name" style="width:180px"
+            <input type="text" class="form-input filter-name" id="filter-name"
               placeholder="${t('catalog.filter_name')}" oninput="applyFilters()" autocomplete="off">
-            <select class="form-select" id="filter-category" style="width:170px" onchange="applyFilters()">
+            <select class="form-select filter-category" id="filter-category" onchange="applyFilters()">
               ${filterCategoryOptions()}
             </select>
-            <input type="number" class="form-input" id="filter-price-min" style="width:105px"
+            <input type="number" class="form-input filter-price" id="filter-price-min"
               placeholder="Min R$" min="0" step="0.01" oninput="applyFilters()">
-            <input type="number" class="form-input" id="filter-price-max" style="width:105px"
+            <input type="number" class="form-input filter-price" id="filter-price-max"
               placeholder="Max R$" min="0" step="0.01" oninput="applyFilters()">
           </div>
           <button class="btn btn-outline" id="add-product-btn">
@@ -1018,6 +1052,28 @@ function renderProductTable(products, isFiltered = false) {
       </td>
     </tr>`).join('');
 
+  const cards = products.map(p => `
+    <div class="item-card" onclick="openEditDrawer(${escapeHtml(p.id)})">
+      <div class="item-card-title">${escapeHtml(p.name)}</div>
+      <div class="item-card-sub">${escapeHtml(tCat(p.category)) || '—'} · ${escapeHtml(formatPrice(p.price))}</div>
+      <div class="item-card-footer">
+        <span class="item-card-meta">${t('catalog.col_stock')}: <strong class="tabular">${escapeHtml(p.quantity)}</strong></span>
+        ${pill(p.active ? 'active' : 'inactive')}
+        <div class="item-card-actions">
+          <button class="btn-icon" title="${t('btn.edit')}" onclick="event.stopPropagation();openEditDrawer(${escapeHtml(p.id)})">
+            <svg width="15" height="15" viewBox="0 0 15 15" fill="none">
+              <path d="M10.5 2l2.5 2.5-8 8H2.5V10l8-8z" stroke="currentColor" stroke-width="1.2" stroke-linejoin="round"/>
+            </svg>
+          </button>
+          <button class="btn-icon danger" title="${t('btn.delete')}" onclick="event.stopPropagation();deleteProduct(${escapeHtml(p.id)})">
+            <svg width="15" height="15" viewBox="0 0 15 15" fill="none">
+              <path d="M2 4h11M5 4V2.5h5V4M6 7v4M9 7v4M3 4l.8 8.5h7.4L12 4" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          </button>
+        </div>
+      </div>
+    </div>`).join('');
+
   wrap.innerHTML = `
     <div class="table-container">
       <table>
@@ -1034,7 +1090,8 @@ function renderProductTable(products, isFiltered = false) {
         </thead>
         <tbody>${rows}</tbody>
       </table>
-    </div>`;
+    </div>
+    <div class="card-list">${cards}</div>`;
 }
 
 function applyFilters() {
@@ -1194,7 +1251,7 @@ function renderConfigTheme() {
       <div>
         <div class="config-field-label">${t('config.theme')}</div>
       </div>
-      <select class="form-select" id="cfg-theme" style="width:200px">
+      <select class="form-select cfg-theme-select" id="cfg-theme">
         <option value="default" ${currentTheme === 'default' ? 'selected' : ''}>${t('config.theme_default')}</option>
         <option value="soft-black" ${currentTheme === 'soft-black' ? 'selected' : ''}>${t('config.theme_soft_black')}</option>
         <option value="light-brown" ${currentTheme === 'light-brown' ? 'selected' : ''}>${t('config.theme_light_brown')}</option>

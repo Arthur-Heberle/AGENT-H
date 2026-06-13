@@ -100,10 +100,6 @@
     margin-bottom: 12px;
   }
 
-  .section-header {
-    padding: 14px 16px;
-  }
-
   /* ── KPI strip ───────────────────────────────────────────── */
 
   .kpi-strip {
@@ -119,20 +115,14 @@
     font-size: 26px;
   }
 
-  /* ── Tables ──────────────────────────────────────────────── */
+  /* ── Tables → card lists ─────────────────────────────────── */
 
-  .table-wrapper {
-    overflow-x: auto;
-    -webkit-overflow-scrolling: touch;
+  .table-container {
+    display: none;
   }
 
-  .section-body {
-    overflow-x: auto;
-    -webkit-overflow-scrolling: touch;
-  }
-
-  table {
-    min-width: 560px;
+  .card-list {
+    display: flex;
   }
 
   /* ── Drawers (slide-in panels) ───────────────────────────── */
@@ -178,7 +168,7 @@
     font-size: 16px !important;
   }
 
-  /* ── Catalog header / filter bar ─────────────────────────── */
+  /* ── Catalog header / filters ────────────────────────────── */
 
   .catalog-header {
     flex-direction: column;
@@ -186,22 +176,116 @@
     gap: 10px;
   }
 
-  .filter-bar {
-    flex-wrap: wrap;
+  .catalog-header-actions {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 10px;
+  }
+
+  .catalog-filters {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
     gap: 8px;
   }
 
-  .filter-bar input,
-  .filter-bar select {
-    flex: 1;
-    min-width: 120px;
+  .catalog-filters .form-input,
+  .catalog-filters .form-select {
+    height: 44px;
   }
 
-  /* ── Catalog grid ────────────────────────────────────────── */
+  .catalog-filters .filter-name,
+  .catalog-filters .filter-category {
+    grid-column: 1 / -1;
+    width: 100%;
+  }
 
-  .catalog-grid {
-    grid-template-columns: 1fr !important;
+  .catalog-filters .filter-price {
+    width: 100%;
+  }
+
+  .catalog-header-actions .btn {
+    width: 100%;
+    justify-content: center;
+  }
+
+  /* ── Conversations: WhatsApp-style master/detail ─────────── */
+
+  .conversations-page {
+    margin: -16px;
+    height: calc(100vh - 52px);
+    padding: 0;
+  }
+
+  .conv-list {
+    width: 100%;
+    min-width: 0;
+    border-right: none;
+  }
+
+  .conv-detail {
+    display: none;
+  }
+
+  .conversations-layout.show-detail .conv-list {
+    display: none;
+  }
+
+  .conversations-layout.show-detail .conv-detail {
+    display: flex;
+  }
+
+  .conv-back {
+    display: flex;
+  }
+
+  .conv-detail-header {
+    padding: 10px 12px;
     gap: 10px;
+  }
+
+  .conv-messages {
+    padding: 16px;
+  }
+
+  .msg-bubble {
+    max-width: 85%;
+  }
+
+  /* ── Config pages ────────────────────────────────────────── */
+
+  .config-field-row {
+    grid-template-columns: 1fr;
+    gap: 6px;
+  }
+
+  .config-field-label {
+    padding-top: 0;
+  }
+
+  .config-section-footer .btn {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .cfg-theme-select {
+    width: 100%;
+  }
+
+  /* ── Topbar breadcrumb ───────────────────────────────────── */
+
+  .breadcrumb-root {
+    display: none;
+  }
+
+  .topbar-breadcrumb {
+    min-width: 0;
+    overflow: hidden;
+  }
+
+  .topbar-breadcrumb .page-title {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
   }
 
   /* ── Touch targets ───────────────────────────────────────── */
@@ -234,14 +318,10 @@
 
   /* ── Login / auth page ───────────────────────────────────── */
 
-  .auth-wrapper,
-  .login-wrapper {
+  .login-page {
     padding: 24px 16px;
-    min-height: 100vh;
-    align-items: flex-start;
   }
 
-  .auth-card,
   .login-card {
     width: 100%;
     max-width: 100%;
