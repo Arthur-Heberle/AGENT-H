@@ -1690,3 +1690,57 @@ th.num-center {
   padding: 6px 14px;
   height: auto;
 }
+
+/* ── Modal ─────────────────────────────── */
+.modal-backdrop {
+  display: none;
+  position: fixed; inset: 0;
+  background: rgba(0,0,0,0.4);
+  z-index: 200;
+}
+.modal-backdrop.open { display: block; }
+
+.modal {
+  display: none;
+  position: fixed;
+  top: 50%; left: 50%;
+  transform: translate(-50%, -50%);
+  background: var(--bg-card);
+  border-radius: var(--radius-card);
+  box-shadow: 0 8px 40px rgba(0,0,0,0.18);
+  width: min(640px, 94vw);
+  max-height: 90vh;
+  overflow-y: auto;
+  z-index: 201;
+}
+.modal.open { display: block; }
+.modal-header {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 20px 24px 16px;
+  border-bottom: 1px solid var(--border);
+  position: sticky; top: 0; background: var(--bg-card); z-index: 1;
+}
+.modal-title { font-family: var(--font-display); font-size: 18px; font-weight: 600; }
+.modal-body { padding: 20px 24px; }
+
+/* mapping grid inside import modal */
+.import-mapping-grid {
+  display: grid; grid-template-columns: 140px 1fr; gap: 10px 16px; align-items: center;
+  margin-bottom: 20px;
+}
+.import-mapping-grid label { font-size: 14px; font-weight: 500; color: var(--text-primary); }
+
+/* preview table inside import modal */
+.import-preview-table { width: 100%; border-collapse: collapse; font-size: 12px; margin-bottom: 20px; }
+.import-preview-table th, .import-preview-table td {
+  border: 1px solid var(--border); padding: 6px 10px; text-align: left;
+}
+.import-preview-table th { background: var(--bg-canvas); font-weight: 600; }
+.import-modal-footer { display: flex; gap: 10px; justify-content: flex-end; }
+
+/* focus rings for import controls */
+#import-csv-file:focus-visible,
+.import-mapping-grid select:focus-visible {
+  outline: 2px solid var(--gold);
+  outline-offset: 2px;
+}

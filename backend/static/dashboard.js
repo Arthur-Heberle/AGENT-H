@@ -146,6 +146,24 @@ const i18n = {
     'topbar.user': 'Móveis Viana',
     'topbar.role': 'Administrador',
     'select_conv': 'Selecione uma conversa',
+    'catalog.import': 'Importar CSV',
+    'catalog.import_title': 'Importar catálogo',
+    'catalog.import_file': 'Selecionar arquivo CSV',
+    'catalog.import_analyze': 'Analisar',
+    'catalog.import_analyzing': 'Analisando com IA…',
+    'catalog.import_mapping': 'Mapeamento de colunas',
+    'catalog.import_field_name': 'Nome *',
+    'catalog.import_field_category': 'Categoria',
+    'catalog.import_field_price': 'Preço',
+    'catalog.import_field_quantity': 'Estoque',
+    'catalog.import_field_description': 'Descrição',
+    'catalog.import_field_specs': 'Especificações',
+    'catalog.import_skip': '— Ignorar —',
+    'catalog.import_preview': 'Prévia dos dados',
+    'catalog.import_confirm': 'Importar',
+    'catalog.import_importing': 'Importando…',
+    'catalog.import_success': '{n} produtos importados, {s} ignorados.',
+    'catalog.import_error': 'Erro ao importar arquivo.',
   },
   en: {
     'nav.overview': 'Overview',
@@ -279,6 +297,24 @@ const i18n = {
     'topbar.user': 'Viana Furniture',
     'topbar.role': 'Administrator',
     'select_conv': 'Select a conversation',
+    'catalog.import': 'Import CSV',
+    'catalog.import_title': 'Import catalog',
+    'catalog.import_file': 'Select CSV file',
+    'catalog.import_analyze': 'Analyze',
+    'catalog.import_analyzing': 'Analyzing with AI…',
+    'catalog.import_mapping': 'Column mapping',
+    'catalog.import_field_name': 'Name *',
+    'catalog.import_field_category': 'Category',
+    'catalog.import_field_price': 'Price',
+    'catalog.import_field_quantity': 'Stock',
+    'catalog.import_field_description': 'Description',
+    'catalog.import_field_specs': 'Specifications',
+    'catalog.import_skip': '— Skip —',
+    'catalog.import_preview': 'Data preview',
+    'catalog.import_confirm': 'Import',
+    'catalog.import_importing': 'Importing…',
+    'catalog.import_success': '{n} products imported, {s} skipped.',
+    'catalog.import_error': 'Error importing file.',
   }
 };
 
@@ -1169,6 +1205,12 @@ function renderCatalogo() {
             <input type="number" class="form-input filter-price" id="filter-price-max"
               placeholder="Max R$" min="0" step="0.01" oninput="applyFilters()">
           </div>
+          <button class="btn btn-outline" id="import-csv-btn">
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+              <path d="M3 13h10M8 2v8M5 7l3 3 3-3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+            ${t('catalog.import')}
+          </button>
           <button class="btn btn-outline" id="add-product-btn">
             <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
               <path d="M8 3v10M3 8h10" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
@@ -1255,10 +1297,26 @@ function renderCatalogo() {
         <button class="btn btn-ghost" id="drawer-cancel">${t('catalog.cancel')}</button>
         <button class="btn btn-primary" id="drawer-save">${t('catalog.save')}</button>
       </div>
+    </div>
+    <!-- Import Modal -->
+    <div id="import-modal-backdrop" class="modal-backdrop"></div>
+    <div id="import-modal" class="modal" role="dialog" aria-modal="true" aria-label="${t('catalog.import_title')}">
+      <div class="modal-header">
+        <h2 class="modal-title">${t('catalog.import_title')}</h2>
+        <button class="btn-icon" id="import-modal-close" aria-label="${t('btn.back')}">
+          <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
+            <path d="M4 4l10 10M14 4L4 14" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+          </svg>
+        </button>
+      </div>
+      <div class="modal-body" id="import-modal-body">
+        <!-- Step 1: file picker, rendered dynamically -->
+      </div>
     </div>`;
 
   loadCatalogData();
   wireDrawer();
+  wireImportModal();
 }
 
 function loadCatalogData() {
@@ -1518,6 +1576,152 @@ function closeDrawer() {
   document.getElementById('product-drawer')?.classList.remove('open');
   const saveBtn = document.getElementById('drawer-save');
   if (saveBtn) { saveBtn.disabled = false; saveBtn.textContent = t('catalog.save'); }
+}
+
+/* ── CSV IMPORT MODAL ─────────────────── */
+let _importPreviewData = null; // {columns, sample_rows, suggested_mapping}
+
+function openImportModal() {
+  _importPreviewData = null;
+  document.getElementById('import-modal-backdrop').classList.add('open');
+  document.getElementById('import-modal').classList.add('open');
+  _renderImportStep1();
+}
+
+function closeImportModal() {
+  document.getElementById('import-modal-backdrop').classList.remove('open');
+  document.getElementById('import-modal').classList.remove('open');
+}
+
+function _renderImportStep1() {
+  const body = document.getElementById('import-modal-body');
+  if (!body) return;
+  body.innerHTML = `
+    <div class="form-group">
+      <label class="form-label" for="import-csv-file">${t('catalog.import_file')}</label>
+      <input type="file" id="import-csv-file" class="form-input" accept=".csv" style="cursor:pointer">
+    </div>
+    <div class="import-modal-footer">
+      <button class="btn btn-ghost" onclick="closeImportModal()">${t('catalog.cancel')}</button>
+      <button class="btn btn-primary" id="import-analyze-btn" onclick="runImportPreview()">${t('catalog.import_analyze')}</button>
+    </div>`;
+}
+
+window.runImportPreview = async function() {
+  const fileInput = document.getElementById('import-csv-file');
+  if (!fileInput?.files?.[0]) return;
+  const btn = document.getElementById('import-analyze-btn');
+  if (btn) { btn.disabled = true; btn.textContent = t('catalog.import_analyzing'); }
+
+  const fd = new FormData();
+  fd.append('file', fileInput.files[0]);
+  try {
+    const res = await fetch('/api/products/import/preview', {
+      method: 'POST',
+      headers: { 'Authorization': `Bearer ${localStorage.getItem('agente_token')}` },
+      body: fd,
+    });
+    if (res.status === 401) { logout(); return; }
+    if (!res.ok) throw new Error(await res.text());
+    _importPreviewData = await res.json();
+    _renderImportStep2();
+  } catch (e) {
+    showToast(t('catalog.import_error'), 'error');
+    if (btn) { btn.disabled = false; btn.textContent = t('catalog.import_analyze'); }
+  }
+};
+
+function _renderImportStep2() {
+  const body = document.getElementById('import-modal-body');
+  if (!body || !_importPreviewData) return;
+  const { columns, sample_rows, suggested_mapping } = _importPreviewData;
+
+  const FIELD_LABELS = {
+    name: t('catalog.import_field_name'),
+    category: t('catalog.import_field_category'),
+    price: t('catalog.import_field_price'),
+    quantity: t('catalog.import_field_quantity'),
+    description: t('catalog.import_field_description'),
+    specs: t('catalog.import_field_specs'),
+  };
+  const FIELDS = Object.keys(FIELD_LABELS);
+
+  const colOptions = `<option value="">${escapeHtml(t('catalog.import_skip'))}</option>` +
+    columns.map(c => `<option value="${escapeHtml(c)}">${escapeHtml(c)}</option>`).join('');
+
+  const mappingRows = FIELDS.map(field => `
+    <label for="imp-map-${field}">${escapeHtml(FIELD_LABELS[field])}</label>
+    <select id="imp-map-${field}" class="form-select" aria-label="${escapeHtml(FIELD_LABELS[field])}">
+      ${colOptions}
+    </select>`).join('');
+
+  // Preview table
+  const previewHeaders = columns.map(c => `<th>${escapeHtml(c)}</th>`).join('');
+  const previewRows = sample_rows.slice(0, 5).map(row =>
+    `<tr>${columns.map(c => `<td>${escapeHtml(row[c] || '')}</td>`).join('')}</tr>`
+  ).join('');
+
+  body.innerHTML = `
+    <h3 style="font-size:14px;font-weight:600;margin-bottom:12px">${t('catalog.import_mapping')}</h3>
+    <div class="import-mapping-grid">${mappingRows}</div>
+    <h3 style="font-size:14px;font-weight:600;margin-bottom:8px">${t('catalog.import_preview')}</h3>
+    <div style="overflow-x:auto">
+      <table class="import-preview-table">
+        <thead><tr>${previewHeaders}</tr></thead>
+        <tbody>${previewRows}</tbody>
+      </table>
+    </div>
+    <div class="import-modal-footer">
+      <button class="btn btn-ghost" onclick="closeImportModal()">${t('catalog.cancel')}</button>
+      <button class="btn btn-primary" id="import-confirm-btn" onclick="runImportCommit()">${t('catalog.import_confirm')}</button>
+    </div>`;
+
+  // Pre-fill dropdowns with AI suggestions
+  FIELDS.forEach(field => {
+    const sel = document.getElementById(`imp-map-${field}`);
+    const suggested = suggested_mapping?.[field];
+    if (sel && suggested && columns.includes(suggested)) {
+      sel.value = suggested;
+    }
+  });
+}
+
+window.runImportCommit = async function() {
+  if (!_importPreviewData) return;
+  const btn = document.getElementById('import-confirm-btn');
+  if (btn) { btn.disabled = true; btn.textContent = t('catalog.import_importing'); }
+
+  const FIELDS = ['name', 'category', 'price', 'quantity', 'description', 'specs'];
+  const mapping = {};
+  FIELDS.forEach(field => {
+    const sel = document.getElementById(`imp-map-${field}`);
+    mapping[field] = sel?.value || null;
+  });
+
+  try {
+    const result = await realAPI('/api/products/import/commit', {
+      method: 'POST',
+      body: { mapping, rows: _importPreviewData.sample_rows },
+    });
+    closeImportModal();
+    const msg = t('catalog.import_success')
+      .replace('{n}', result.imported)
+      .replace('{s}', result.skipped);
+    showToast(msg, 'success');
+    loadCatalogData();
+  } catch (e) {
+    showToast(t('catalog.import_error'), 'error');
+    if (btn) { btn.disabled = false; btn.textContent = t('catalog.import_confirm'); }
+  }
+};
+
+window.openImportModal = openImportModal;
+window.closeImportModal = closeImportModal;
+
+function wireImportModal() {
+  document.getElementById('import-csv-btn')?.addEventListener('click', openImportModal);
+  document.getElementById('import-modal-close')?.addEventListener('click', closeImportModal);
+  document.getElementById('import-modal-backdrop')?.addEventListener('click', closeImportModal);
 }
 
 /* ── CONFIG PAGE ──────────────────────────────────────────── */
