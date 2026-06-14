@@ -20,11 +20,10 @@ async def preview(file_bytes: bytes) -> dict:
     text = file_bytes.decode("utf-8", errors="replace")
     reader = csv.DictReader(io.StringIO(text))
     columns = reader.fieldnames or []
-    sample_rows: list[dict] = []
+    all_rows: list[dict] = []
     for row in reader:
-        sample_rows.append(dict(row))
-        if len(sample_rows) >= 5:
-            break
+        all_rows.append(dict(row))
+    sample_rows = all_rows[:5]
 
     # Build LLM prompt for column mapping
     columns_list = ", ".join(f'"{c}"' for c in columns)
@@ -73,7 +72,8 @@ async def preview(file_bytes: bytes) -> dict:
 
     return {
         "columns": list(columns),
-        "sample_rows": sample_rows,
+        "sample_rows": sample_rows,   # first 5 rows for UI preview display
+        "rows": all_rows,             # all rows echoed back for commit
         "suggested_mapping": suggested_mapping,
     }
 

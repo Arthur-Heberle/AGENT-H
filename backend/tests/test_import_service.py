@@ -114,9 +114,11 @@ async def test_preview_sample_rows_capped_at_five():
         result = await preview(CSV_BYTES)
 
     assert len(result["sample_rows"]) == 5
-    # Ensure the 6th row is excluded
+    # Ensure the 6th row is excluded from sample_rows but present in rows
     names = [r["nome"] for r in result["sample_rows"]]
     assert "Extra Row" not in names
+    assert len(result["rows"]) == 6
+    assert result["rows"][-1]["nome"] == "Extra Row"
 
 
 @pytest.mark.anyio

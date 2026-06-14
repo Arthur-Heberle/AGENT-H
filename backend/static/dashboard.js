@@ -1579,7 +1579,7 @@ function closeDrawer() {
 }
 
 /* ── CSV IMPORT MODAL ─────────────────── */
-let _importPreviewData = null; // {columns, sample_rows, suggested_mapping}
+let _importPreviewData = null; // {columns, sample_rows, rows, suggested_mapping}
 
 function openImportModal() {
   _importPreviewData = null;
@@ -1701,7 +1701,7 @@ window.runImportCommit = async function() {
   try {
     const result = await realAPI('/api/products/import/commit', {
       method: 'POST',
-      body: { mapping, rows: _importPreviewData.sample_rows },
+      body: { mapping, rows: _importPreviewData.rows },
     });
     closeImportModal();
     const msg = t('catalog.import_success')
