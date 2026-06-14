@@ -4,6 +4,7 @@ from fastapi import APIRouter, Depends, HTTPException, UploadFile, status
 
 from categories import DEFAULT_CATEGORIES
 from core.deps import require_auth, get_db
+from models.import_models import ImportCommitIn
 from models.product import ProductIn, ProductOut
 from repositories.products import (
     get_custom_categories,
@@ -11,6 +12,7 @@ from repositories.products import (
     set_product_image,
     soft_delete_product,
 )
+from services import import_service
 from services.product_service import create_product, update_product
 
 _UPLOAD_DIR = os.path.join(os.path.dirname(__file__), "..", "..", "static", "uploads")
@@ -34,6 +36,29 @@ async def add_product(
     business_phone: str = Depends(require_auth),
 ):
     return await create_product(pool, business_phone, data)
+
+
+@router.post("/products/import/preview")
+async def import_preview(
+    file: UploadFile,
+    business_phone: str = Depends(require_auth),
+):
+    is_csv = (file.content_type or "").lower() in ("text/csv", "application/csv") or (
+        file.filename or ""
+    ).lower().endswith(".csv")
+    if not is_csv:
+        raise HTTPException(status_code=400, detail="File must be a CSV")
+    file_bytes = await file.read()
+    return await import_service.preview(file_bytes)
+
+
+@router.post("/products/import/commit")
+async def import_commit(
+    data: ImportCommitIn,
+    pool=Depends(get_db),
+    business_phone: str = Depends(require_auth),
+):
+    return await import_service.commit(data.rows, data.mapping, business_phone, pool)
 
 
 @router.put("/products/{product_id}", response_model=ProductOut)
