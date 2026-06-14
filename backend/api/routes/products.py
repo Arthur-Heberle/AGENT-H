@@ -1,4 +1,6 @@
-from fastapi import APIRouter, Depends, HTTPException, status
+import os
+
+from fastapi import APIRouter, Depends, HTTPException, UploadFile, status
 
 from categories import DEFAULT_CATEGORIES
 from core.deps import require_auth, get_db
@@ -6,9 +8,13 @@ from models.product import ProductIn, ProductOut
 from repositories.products import (
     get_custom_categories,
     list_products,
+    set_product_image,
     soft_delete_product,
 )
 from services.product_service import create_product, update_product
+
+_UPLOAD_DIR = os.path.join(os.path.dirname(__file__), "..", "..", "static", "uploads")
+_MAX_IMAGE_BYTES = 5 * 1024 * 1024  # 5 MB
 
 router = APIRouter()
 
@@ -50,6 +56,45 @@ async def delete_product(
     business_phone: str = Depends(require_auth),
 ):
     ok = await soft_delete_product(pool, product_id, business_phone)
+    if not ok:
+        raise HTTPException(status_code=404, detail="Product not found")
+    return {"success": True}
+
+
+@router.post("/products/{product_id}/image")
+async def upload_product_image(
+    product_id: int,
+    file: UploadFile,
+    pool=Depends(get_db),
+    business_phone: str = Depends(require_auth),
+):
+    if not (file.content_type or "").startswith("image/"):
+        raise HTTPException(status_code=400, detail="File must be an image")
+    data = await file.read()
+    if len(data) > _MAX_IMAGE_BYTES:
+        raise HTTPException(status_code=400, detail="Image must be ≤ 5 MB")
+    ext = (file.filename or "img").rsplit(".", 1)[-1].lower()
+    if ext not in ("jpg", "jpeg", "png", "gif", "webp"):
+        ext = "jpg"
+    folder = os.path.join(_UPLOAD_DIR, business_phone)
+    os.makedirs(folder, exist_ok=True)
+    path = os.path.join(folder, f"{product_id}.{ext}")
+    with open(path, "wb") as f:
+        f.write(data)
+    url = f"/static/uploads/{business_phone}/{product_id}.{ext}"
+    ok = await set_product_image(pool, product_id, business_phone, url)
+    if not ok:
+        raise HTTPException(status_code=404, detail="Product not found")
+    return {"image_url": url}
+
+
+@router.delete("/products/{product_id}/image")
+async def delete_product_image(
+    product_id: int,
+    pool=Depends(get_db),
+    business_phone: str = Depends(require_auth),
+):
+    ok = await set_product_image(pool, product_id, business_phone, None)
     if not ok:
         raise HTTPException(status_code=404, detail="Product not found")
     return {"success": True}

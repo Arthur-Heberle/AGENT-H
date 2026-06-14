@@ -6,7 +6,7 @@ from models.product import ProductIn, ProductOut
 async def list_products(pool: Pool, business_phone: str) -> list[ProductOut]:
     rows = await pool.fetch(
         """
-        SELECT id, name, category, price, quantity, description, specs, active, updated_at
+        SELECT id, name, category, price, quantity, description, specs, active, image_url, updated_at
         FROM products
         WHERE business_phone = $1
         ORDER BY active DESC, updated_at DESC
@@ -19,7 +19,7 @@ async def list_products(pool: Pool, business_phone: str) -> list[ProductOut]:
 async def get_product(pool: Pool, product_id: int, business_phone: str) -> dict | None:
     row = await pool.fetchrow(
         """
-        SELECT id, name, category, price, quantity, description, specs, active, updated_at
+        SELECT id, name, category, price, quantity, description, specs, active, image_url, updated_at
         FROM products
         WHERE id = $1 AND business_phone = $2
         """,
@@ -27,6 +27,18 @@ async def get_product(pool: Pool, product_id: int, business_phone: str) -> dict 
         business_phone,
     )
     return dict(row) if row else None
+
+
+async def set_product_image(
+    pool: Pool, product_id: int, business_phone: str, url: str | None
+) -> bool:
+    result = await pool.execute(
+        "UPDATE products SET image_url=$3, updated_at=NOW() WHERE id=$1 AND business_phone=$2",
+        product_id,
+        business_phone,
+        url,
+    )
+    return result == "UPDATE 1"
 
 
 async def create_product(
@@ -39,7 +51,7 @@ async def create_product(
         """
         INSERT INTO products (business_phone, name, category, price, quantity, description, specs, embedding)
         VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
-        RETURNING id, name, category, price, quantity, description, specs, active, updated_at
+        RETURNING id, name, category, price, quantity, description, specs, active, image_url, updated_at
         """,
         business_phone,
         data.name,
@@ -67,7 +79,7 @@ async def update_product(
             SET name=$3, category=$4, price=$5, quantity=$6, description=$7, specs=$8,
                 embedding=$9, updated_at=NOW()
             WHERE id=$1 AND business_phone=$2
-            RETURNING id, name, category, price, quantity, description, specs, active, updated_at
+            RETURNING id, name, category, price, quantity, description, specs, active, image_url, updated_at
             """,
             product_id,
             business_phone,
@@ -86,7 +98,7 @@ async def update_product(
             SET name=$3, category=$4, price=$5, quantity=$6, description=$7, specs=$8,
                 updated_at=NOW()
             WHERE id=$1 AND business_phone=$2
-            RETURNING id, name, category, price, quantity, description, specs, active, updated_at
+            RETURNING id, name, category, price, quantity, description, specs, active, image_url, updated_at
             """,
             product_id,
             business_phone,

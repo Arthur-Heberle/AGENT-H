@@ -96,6 +96,9 @@ BEGIN
   RETURN d;
 END $$ LANGUAGE plpgsql IMMUTABLE;
 
+-- Idempotent migration: product images added after initial deploy
+ALTER TABLE products ADD COLUMN IF NOT EXISTS image_url TEXT;
+
 -- Idempotent migration: rows written before normalization existed may have '+'
 -- prefixes or the 13-digit 9th-digit format. Tables with uniqueness on
 -- business_phone skip rows whose normalized value already exists (no collisions).

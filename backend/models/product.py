@@ -22,4 +22,5 @@ class ProductOut(BaseModel):
     description: str | None
     specs: str | None
     active: bool
+    image_url: str | None = None
     updated_at: datetime

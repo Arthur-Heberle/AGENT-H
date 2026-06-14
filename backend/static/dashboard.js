@@ -56,6 +56,11 @@ const i18n = {
     'catalog.filter_name': 'Buscar por nome…',
     'catalog.filter_all_cats': 'Todas as categorias',
     'catalog.no_results': 'Nenhum produto encontrado.',
+    'catalog.image': 'Foto do produto',
+    'catalog.image_hint': 'JPG, PNG ou WebP · máx. 5 MB',
+    'catalog.image_upload': 'Escolher imagem',
+    'catalog.image_remove': 'Remover imagem',
+    'catalog.image_uploading': 'Enviando…',
     'status.active': 'Ativo',
     'status.paused': 'Pausado',
     'status.inactive': 'Inativo',
@@ -169,6 +174,11 @@ const i18n = {
     'catalog.filter_name': 'Search by name…',
     'catalog.filter_all_cats': 'All categories',
     'catalog.no_results': 'No products found.',
+    'catalog.image': 'Product photo',
+    'catalog.image_hint': 'JPG, PNG or WebP · max 5 MB',
+    'catalog.image_upload': 'Choose image',
+    'catalog.image_remove': 'Remove image',
+    'catalog.image_uploading': 'Uploading…',
     'status.active': 'Active',
     'status.paused': 'Paused',
     'status.inactive': 'Inactive',
@@ -1030,6 +1040,25 @@ function renderCatalogo() {
             <label class="form-label">${t('catalog.specs')}</label>
             <textarea class="form-textarea" id="f-specs" rows="3" placeholder="Largura: 220cm | Altura: 82cm"></textarea>
           </div>
+          <div class="form-group" id="image-upload-group">
+            <label class="form-label">${t('catalog.image')}</label>
+            <div class="image-upload-area" id="image-upload-area">
+              <img id="image-preview" class="image-preview" src="" alt="" style="display:none"/>
+              <div id="image-placeholder" class="image-placeholder">
+                <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round">
+                  <rect x="3" y="3" width="18" height="18" rx="3"/>
+                  <circle cx="8.5" cy="8.5" r="1.5"/>
+                  <polyline points="21 15 16 10 5 21"/>
+                </svg>
+              </div>
+            </div>
+            <div class="image-upload-actions">
+              <label class="btn btn-outline btn-sm" for="f-image-input" id="image-upload-btn">${t('catalog.image_upload')}</label>
+              <input type="file" id="f-image-input" accept="image/*" style="display:none"/>
+              <button class="btn btn-ghost btn-sm danger" id="image-remove-btn" style="display:none">${t('catalog.image_remove')}</button>
+            </div>
+            <div class="form-hint">${t('catalog.image_hint')}</div>
+          </div>
         </form>
       </div>
       <div class="drawer-footer">
@@ -1071,6 +1100,7 @@ function renderProductTable(products, isFiltered = false) {
   const rows = products.map(p => `
     <tr ondblclick="openEditDrawer(${escapeHtml(p.id)})" style="cursor:pointer" title="${t('btn.edit')}">
       <td class="text-tertiary text-13 tabular">${escapeHtml(p.id)}</td>
+      <td class="product-thumb-cell">${p.image_url ? `<img src="${escapeHtml(p.image_url)}" class="product-thumb" alt="">` : '<div class="product-thumb product-thumb--empty"></div>'}</td>
       <td><strong>${escapeHtml(p.name)}</strong></td>
       <td class="text-secondary text-13">${escapeHtml(tCat(p.category)) || '—'}</td>
       <td class="num-center tabular">${escapeHtml(formatPrice(p.price))}</td>
@@ -1094,6 +1124,7 @@ function renderProductTable(products, isFiltered = false) {
 
   const cards = products.map(p => `
     <div class="item-card" onclick="openEditDrawer(${escapeHtml(p.id)})">
+      ${p.image_url ? `<img src="${escapeHtml(p.image_url)}" class="item-card-img" alt="">` : ''}
       <div class="item-card-title">${escapeHtml(p.name)}</div>
       <div class="item-card-sub">${escapeHtml(tCat(p.category)) || '—'} · ${escapeHtml(formatPrice(p.price))}</div>
       <div class="item-card-footer">
@@ -1120,6 +1151,7 @@ function renderProductTable(products, isFiltered = false) {
         <thead>
           <tr>
             <th style="width:40px">${t('catalog.col_num')}</th>
+            <th style="width:48px"></th>
             <th>${t('catalog.col_name')}</th>
             <th>${t('catalog.col_cat')}</th>
             <th class="num-center">${t('catalog.col_price')}</th>
@@ -1152,17 +1184,54 @@ function applyFilters() {
   renderProductTable(filtered, anyActive);
 }
 
+let _pendingImageFile = null;
+
+function _setImagePreview(url) {
+  const preview = document.getElementById('image-preview');
+  const placeholder = document.getElementById('image-placeholder');
+  const removeBtn = document.getElementById('image-remove-btn');
+  if (url) {
+    preview.src = url;
+    preview.style.display = 'block';
+    placeholder.style.display = 'none';
+    removeBtn.style.display = '';
+  } else {
+    preview.src = '';
+    preview.style.display = 'none';
+    placeholder.style.display = '';
+    removeBtn.style.display = 'none';
+  }
+}
+
 function wireDrawer() {
   const backdrop = document.getElementById('drawer-backdrop');
   const addBtn = document.getElementById('add-product-btn');
   const closeBtn = document.getElementById('drawer-close');
   const cancelBtn = document.getElementById('drawer-cancel');
   const saveBtn = document.getElementById('drawer-save');
+  const fileInput = document.getElementById('f-image-input');
+  const removeBtn = document.getElementById('image-remove-btn');
 
   addBtn?.addEventListener('click', openDrawer);
   closeBtn?.addEventListener('click', closeDrawer);
   cancelBtn?.addEventListener('click', closeDrawer);
   backdrop?.addEventListener('click', closeDrawer);
+
+  fileInput?.addEventListener('change', () => {
+    const file = fileInput.files[0];
+    if (!file) return;
+    _pendingImageFile = file;
+    _setImagePreview(URL.createObjectURL(file));
+  });
+
+  removeBtn?.addEventListener('click', async () => {
+    _pendingImageFile = null;
+    _setImagePreview(null);
+    if (drawerMode === 'edit' && editingProductId) {
+      await realAPI(`/api/products/${editingProductId}/image`, { method: 'DELETE' }).catch(() => {});
+      loadCatalogData();
+    }
+  });
 
   saveBtn?.addEventListener('click', async () => {
     const name = document.getElementById('f-name')?.value.trim();
@@ -1181,10 +1250,22 @@ function wireDrawer() {
     saveBtn.textContent = '…';
 
     try {
+      let productId = editingProductId;
       if (drawerMode === 'edit' && editingProductId) {
-        await mockAPI(`/api/products/${editingProductId}`, { method: 'PUT', body: { ...payload, active: true } });
+        await realAPI(`/api/products/${editingProductId}`, { method: 'PUT', body: { ...payload, active: true } });
       } else {
-        await mockAPI('/api/products', { method: 'POST', body: payload });
+        const created = await realAPI('/api/products', { method: 'POST', body: payload });
+        productId = created.id;
+      }
+      if (_pendingImageFile && productId) {
+        const fd = new FormData();
+        fd.append('file', _pendingImageFile);
+        await fetch(`/api/products/${productId}/image`, {
+          method: 'POST',
+          headers: { 'Authorization': `Bearer ${localStorage.getItem('agente_token')}` },
+          body: fd,
+        });
+        _pendingImageFile = null;
       }
       closeDrawer();
       loadCatalogData();
@@ -1198,9 +1279,11 @@ function wireDrawer() {
 function openDrawer() {
   drawerMode = 'add';
   editingProductId = null;
+  _pendingImageFile = null;
   const title = document.getElementById('drawer-title');
   if (title) title.textContent = t('catalog.add_title');
   document.getElementById('product-form')?.reset();
+  _setImagePreview(null);
   document.getElementById('drawer-backdrop')?.classList.add('open');
   document.getElementById('product-drawer')?.classList.add('open');
   setTimeout(() => document.getElementById('f-name')?.focus(), 250);
@@ -1213,6 +1296,7 @@ window.openEditDrawer = function (id) {
   if (!product) return;
   drawerMode = 'edit';
   editingProductId = id;
+  _pendingImageFile = null;
   const title = document.getElementById('drawer-title');
   if (title) title.textContent = t('catalog.edit_title');
   document.getElementById('f-name').value = product.name || '';
@@ -1229,6 +1313,7 @@ window.openEditDrawer = function (id) {
   document.getElementById('f-stock').value = product.quantity || '';
   document.getElementById('f-description').value = product.description || '';
   document.getElementById('f-specs').value = product.specs || '';
+  _setImagePreview(product.image_url || null);
   document.getElementById('drawer-backdrop')?.classList.add('open');
   document.getElementById('product-drawer')?.classList.add('open');
 };
