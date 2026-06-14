@@ -11,3 +11,14 @@ async def embed(text: str) -> list[float]:
         model=settings.EMBEDDING_MODEL,
     )
     return response.data[0].embedding
+
+
+async def embed_many(texts: list[str]) -> list[list[float]]:
+    if not texts:
+        return []
+    response = await _client.embeddings.create(
+        input=texts,
+        model=settings.EMBEDDING_MODEL,
+    )
+    # API returns items in the same order as input
+    return [item.embedding for item in sorted(response.data, key=lambda x: x.index)]
