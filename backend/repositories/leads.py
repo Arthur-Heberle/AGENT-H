@@ -15,7 +15,7 @@ async def upsert_lead(
         INSERT INTO leads (business_phone, customer_phone, customer_name, summary, updated_at)
         VALUES ($1, $2, $3, $4, NOW())
         ON CONFLICT (business_phone, customer_phone) DO UPDATE
-          SET summary     = EXCLUDED.summary,
+          SET summary     = COALESCE(NULLIF(EXCLUDED.summary, ''), leads.summary),
               customer_name = COALESCE(EXCLUDED.customer_name, leads.customer_name),
               updated_at  = NOW()
         """,
