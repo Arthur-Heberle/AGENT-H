@@ -73,6 +73,7 @@ const i18n = {
     'btn.retry': 'Tentar novamente',
     'btn.open': 'Abrir',
     'btn.back': 'Voltar',
+    'btn.close': 'Fechar',
     'btn.logout': 'Sair',
     'btn.edit': 'Editar',
     'btn.delete': 'Excluir',
@@ -224,6 +225,7 @@ const i18n = {
     'btn.retry': 'Retry',
     'btn.open': 'Open',
     'btn.back': 'Back',
+    'btn.close': 'Close',
     'btn.logout': 'Logout',
     'btn.edit': 'Edit',
     'btn.delete': 'Delete',
@@ -1232,7 +1234,7 @@ function renderCatalogo() {
     <div class="drawer" id="product-drawer">
       <div class="drawer-header">
         <h2 class="drawer-title" id="drawer-title">${t('catalog.add_title')}</h2>
-        <button class="btn-icon" id="drawer-close">
+        <button class="btn-icon" id="drawer-close" aria-label="${t('btn.close')}">
           <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
             <path d="M4 4l10 10M14 4L4 14" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
           </svg>
@@ -1303,7 +1305,7 @@ function renderCatalogo() {
     <div id="import-modal" class="modal" role="dialog" aria-modal="true" aria-label="${t('catalog.import_title')}">
       <div class="modal-header">
         <h2 class="modal-title">${t('catalog.import_title')}</h2>
-        <button class="btn-icon" id="import-modal-close" aria-label="${t('btn.back')}">
+        <button class="btn-icon" id="import-modal-close" aria-label="${t('btn.close')}">
           <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
             <path d="M4 4l10 10M14 4L4 14" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
           </svg>
@@ -1356,12 +1358,12 @@ function renderProductTable(products, isFiltered = false) {
       <td>${pill(p.active ? 'active' : 'inactive')}</td>
       <td>
         <div class="row-actions">
-          <button class="btn-icon" title="${t('btn.edit')}" onclick="event.stopPropagation();openEditDrawer(${escapeHtml(p.id)})">
+          <button class="btn-icon" title="${t('btn.edit')}" aria-label="${t('btn.edit')}" onclick="event.stopPropagation();openEditDrawer(${escapeHtml(p.id)})">
             <svg width="15" height="15" viewBox="0 0 15 15" fill="none">
               <path d="M10.5 2l2.5 2.5-8 8H2.5V10l8-8z" stroke="currentColor" stroke-width="1.2" stroke-linejoin="round"/>
             </svg>
           </button>
-          <button class="btn-icon danger" title="${t('btn.delete')}" onclick="event.stopPropagation();deleteProduct(${escapeHtml(p.id)})">
+          <button class="btn-icon danger" title="${t('btn.delete')}" aria-label="${t('btn.delete')}" onclick="event.stopPropagation();deleteProduct(${escapeHtml(p.id)})">
             <svg width="15" height="15" viewBox="0 0 15 15" fill="none">
               <path d="M2 4h11M5 4V2.5h5V4M6 7v4M9 7v4M3 4l.8 8.5h7.4L12 4" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/>
             </svg>
@@ -1379,12 +1381,12 @@ function renderProductTable(products, isFiltered = false) {
         <span class="item-card-meta">${t('catalog.col_stock')}: <strong class="tabular">${escapeHtml(p.quantity)}</strong></span>
         ${pill(p.active ? 'active' : 'inactive')}
         <div class="item-card-actions">
-          <button class="btn-icon" title="${t('btn.edit')}" onclick="event.stopPropagation();openEditDrawer(${escapeHtml(p.id)})">
+          <button class="btn-icon" title="${t('btn.edit')}" aria-label="${t('btn.edit')}" onclick="event.stopPropagation();openEditDrawer(${escapeHtml(p.id)})">
             <svg width="15" height="15" viewBox="0 0 15 15" fill="none">
               <path d="M10.5 2l2.5 2.5-8 8H2.5V10l8-8z" stroke="currentColor" stroke-width="1.2" stroke-linejoin="round"/>
             </svg>
           </button>
-          <button class="btn-icon danger" title="${t('btn.delete')}" onclick="event.stopPropagation();deleteProduct(${escapeHtml(p.id)})">
+          <button class="btn-icon danger" title="${t('btn.delete')}" aria-label="${t('btn.delete')}" onclick="event.stopPropagation();deleteProduct(${escapeHtml(p.id)})">
             <svg width="15" height="15" viewBox="0 0 15 15" fill="none">
               <path d="M2 4h11M5 4V2.5h5V4M6 7v4M9 7v4M3 4l.8 8.5h7.4L12 4" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/>
             </svg>
