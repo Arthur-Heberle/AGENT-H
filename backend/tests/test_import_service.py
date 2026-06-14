@@ -66,6 +66,13 @@ def test_get_str_strips_whitespace():
     assert _get_str(row, mapping, "name") == "Sofá"
 
 
+def test_get_str_column_key_missing_from_row():
+    # mapping references a column that csv.DictReader somehow omits
+    row = {}
+    mapping = {"name": "Nome"}
+    assert _get_str(row, mapping, "name") is None
+
+
 # ---------------------------------------------------------------------------
 # preview() — async
 # ---------------------------------------------------------------------------
