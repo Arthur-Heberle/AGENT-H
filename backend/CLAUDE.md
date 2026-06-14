@@ -59,6 +59,8 @@ Mounts `/static` directory. Serves `/dashboard` and `/login` HTML pages.
 | PUT | `/api/settings` | JWT required | — | Upsert AI settings |
 | POST | `/api/products/{id}/image` | JWT required | — | Upload product image (UploadFile, ≤5 MB) |
 | DELETE | `/api/products/{id}/image` | JWT required | — | Clear product image URL |
+| POST | `/api/products/import/preview` | JWT required | `import_service.preview()` | Parse CSV (≤10 MB), AI-suggest column mapping; rows capped at 500 |
+| POST | `/api/products/import/commit` | JWT required | `import_service.commit()` | Import mapped rows (≤500); dedupes by name + embeds |
 | GET | `/api/leads` | JWT required | `repositories/leads.py` | List captured leads |
 | PUT | `/api/leads/{customer_phone}` | JWT required | `repositories/leads.py` | Update lead status |
 | GET | `/api/leads/export.csv` | JWT required | `repositories/leads.py` | Download leads as CSV |
@@ -135,6 +137,17 @@ async def list_products(conn: asyncpg.Connection, business_phone: str) -> list[a
 | `services/product_service.py` | `create_product()`, `update_product()` | Handles embedding logic + repo calls |
 | `services/stats_service.py` | `get_stats()` | Aggregates KPI metrics from DB |
 | `services/sms.py` | `send_otp(phone, code)` | POST to Evolution API WhatsApp send endpoint |
+| `services/import_service.py` | `preview()`, `commit()` | CSV catalog import: `preview` LLM-maps columns to canonical fields (rows capped at 500); `commit` parses prices (BR format), batch-embeds, and inserts — dedupes by name (vs existing active products + within the file) so re-imports are idempotent |
+
+## CSV Import (services/import_service.py)
+
+Two-step, no server-side file caching: the client uploads to `preview`, which returns
+`columns`, `sample_rows`, the full `rows` (capped at `_MAX_IMPORT_ROWS = 500`, with
+`total_rows`/`truncated` flags so the UI can warn), and an AI `suggested_mapping`. The
+client confirms the mapping and echoes `rows` back to `commit` (`ImportCommitIn` enforces
+`max_length=500`, mirroring the preview cap). `commit` skips nameless and duplicate rows,
+batch-embeds in chunks of 100, and aborts with an error if the embedding count doesn't
+match the product count (rather than silently dropping rows via `zip`).
 
 ## Categories
 

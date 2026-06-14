@@ -115,12 +115,12 @@ Indexes: `idx_products_business(business_phone, active)`, IVFFlat index on embed
 | business_phone | VARCHAR(30) | Composite PK |
 | customer_phone | VARCHAR(30) | Composite PK |
 | customer_name | VARCHAR(200) | Copied from `conversations` at upsert time |
-| summary | TEXT | Lead summary from LLM, refreshed on each QUALIFIED_LEAD |
+| summary | TEXT | Lead summary from LLM. Refreshed when a new QUALIFIED_LEAD carries a summary; an empty/missing summary preserves the existing one (never overwritten with NULL) |
 | status | VARCHAR(20) | `new` \| `contacted` \| `won` \| `lost` (default `new`) |
 | created_at | TIMESTAMP | Row first created |
 | updated_at | TIMESTAMP | Updated on each AI upsert or manual status change |
 
-**Write path:** `services/rag.py` upserts into `leads` every time the LLM classifies a conversation as `QUALIFIED_LEAD`. Manual status changes come from `PUT /api/leads/{customer_phone}` (dashboard only — n8n does not touch this table).
+**Write path:** `services/rag.py` upserts into `leads` every time the LLM classifies a conversation as `QUALIFIED_LEAD`. The upsert (`repositories/leads.py:upsert_lead`) preserves a manually-set `status`, the original `created_at`, and an existing `summary`/`customer_name` when the new values are empty. Manual status changes come from `PUT /api/leads/{customer_phone}` (dashboard only — n8n does not touch this table).
 
 ## Environment Variables
 
