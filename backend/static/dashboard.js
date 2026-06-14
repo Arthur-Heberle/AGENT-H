@@ -128,6 +128,21 @@ const i18n = {
     'config.delete_warn': 'Esta ação é permanente e não pode ser desfeita.',
     'config.delete_confirm': 'Confirmar exclusão',
     'config.delete_cancel': 'Cancelar',
+    'nav.leads': 'Leads',
+    'leads.title': 'Leads',
+    'leads.col_name': 'Cliente',
+    'leads.col_phone': 'Telefone',
+    'leads.col_summary': 'Resumo',
+    'leads.col_status': 'Status',
+    'leads.col_time': 'Atualizado',
+    'leads.status_new': 'Novo',
+    'leads.status_contacted': 'Contatado',
+    'leads.status_won': 'Ganho',
+    'leads.status_lost': 'Perdido',
+    'leads.export': 'Exportar CSV',
+    'leads.contact': 'Abrir no WhatsApp',
+    'empty.leads': 'Nenhum lead capturado ainda.',
+    'empty.leads_sub': 'Os leads aparecem aqui quando o agente classifica clientes como qualificados.',
     'topbar.user': 'Móveis Viana',
     'topbar.role': 'Administrador',
     'select_conv': 'Selecione uma conversa',
@@ -246,6 +261,21 @@ const i18n = {
     'config.delete_warn': 'This action is permanent and cannot be undone.',
     'config.delete_confirm': 'Confirm deletion',
     'config.delete_cancel': 'Cancel',
+    'nav.leads': 'Leads',
+    'leads.title': 'Leads',
+    'leads.col_name': 'Customer',
+    'leads.col_phone': 'Phone',
+    'leads.col_summary': 'Summary',
+    'leads.col_status': 'Status',
+    'leads.col_time': 'Updated',
+    'leads.status_new': 'New',
+    'leads.status_contacted': 'Contacted',
+    'leads.status_won': 'Won',
+    'leads.status_lost': 'Lost',
+    'leads.export': 'Export CSV',
+    'leads.contact': 'Open in WhatsApp',
+    'empty.leads': 'No leads captured yet.',
+    'empty.leads_sub': 'Leads appear here when the agent classifies customers as qualified.',
     'topbar.user': 'Viana Furniture',
     'topbar.role': 'Administrator',
     'select_conv': 'Select a conversation',
@@ -395,6 +425,7 @@ const ROUTES = {
   '#/overview': renderOverview,
   '#/conversas': renderConversas,
   '#/catalogo': renderCatalogo,
+  '#/leads': renderLeads,
   '#/config': function() {
     history.replaceState(null, '', '#/config/general');
     router();
@@ -956,6 +987,165 @@ async function renderConvDetail(conv) {
     });
   }
 }
+
+/* ── LEADS PAGE ───────────────────────────────────────────── */
+const _LEAD_STATUSES = ['new', 'contacted', 'won', 'lost'];
+
+function leadStatusPill(status) {
+  const map = { new: 'lead-new', contacted: 'lead-contacted', won: 'lead-won', lost: 'lead-lost' };
+  const cls = map[status] || 'lead-new';
+  return `<span class="pill ${cls}">${escapeHtml(t('leads.status_' + status) || status)}</span>`;
+}
+
+async function renderLeads() {
+  const main = document.getElementById('main');
+  main.innerHTML = `
+    <div class="page-section">
+      <div class="catalog-header">
+        <h1 class="page-title-large font-display">${t('leads.title')}</h1>
+        <button class="btn btn-outline" onclick="downloadLeadsCsv()">
+          <svg width="15" height="15" viewBox="0 0 15 15" fill="none">
+            <path d="M7.5 1v9M4 7l3.5 3.5L11 7M2 13h11" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+          ${t('leads.export')}
+        </button>
+      </div>
+      <div class="card" id="leads-table-wrap">
+        ${[0,1,2,3].map(() => `
+          <div style="display:flex;gap:12px;padding:14px 0;border-bottom:1px solid var(--border)">
+            ${skLine('20%',14)} ${skLine('16%',14)} ${skLine('30%',14)} ${skLine('10%',14)}
+          </div>`).join('')}
+      </div>
+    </div>`;
+
+  try {
+    const leads = await realAPI('/api/leads');
+    _renderLeadsTable(leads);
+  } catch (e) {
+    const wrap = document.getElementById('leads-table-wrap');
+    if (wrap) {
+      wrap.innerHTML = errorBanner();
+      wrap.querySelector('#retry-btn')?.addEventListener('click', renderLeads);
+    }
+  }
+}
+
+function _renderLeadsTable(leads) {
+  const wrap = document.getElementById('leads-table-wrap');
+  if (!wrap) return;
+  if (!leads.length) {
+    wrap.innerHTML = `<div class="empty-state">
+      <svg viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg" style="width:64px;height:64px">
+        <circle cx="26" cy="22" r="10" fill="var(--gold-light)" stroke="var(--border-dark)" stroke-width="1.5"/>
+        <path d="M10 52c0-8.84 7.16-16 16-16s16 7.16 16 16" stroke="var(--border-dark)" stroke-width="1.5" stroke-linecap="round"/>
+        <circle cx="46" cy="26" r="8" fill="var(--gold-light)" stroke="var(--border-dark)" stroke-width="1.5"/>
+        <path d="M34 52c0-6.63 5.37-12 12-12" stroke="var(--border-dark)" stroke-width="1.5" stroke-linecap="round"/>
+      </svg>
+      <p class="empty-state-text">${t('empty.leads')}</p>
+      <p class="text-secondary" style="font-size:13px;max-width:320px;text-align:center">${t('empty.leads_sub')}</p>
+    </div>`;
+    return;
+  }
+
+  const rows = leads.map(lead => {
+    const waLink = `https://wa.me/${(lead.customer_phone || '').replace(/\D/g,'')}`;
+    const statusOpts = _LEAD_STATUSES.map(s =>
+      `<option value="${s}"${s === lead.status ? ' selected' : ''}>${escapeHtml(t('leads.status_' + s))}</option>`
+    ).join('');
+    return `
+      <tr>
+        <td>
+          <div style="font-weight:600">${escapeHtml(lead.customer_name || '—')}</div>
+          <div class="text-secondary text-13">${escapeHtml(lead.customer_phone)}</div>
+        </td>
+        <td class="text-secondary text-13" style="max-width:280px">
+          <div style="display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden">${escapeHtml(lead.summary || '—')}</div>
+        </td>
+        <td>
+          <select class="form-select" style="font-size:13px;padding:5px 10px;height:auto"
+            onchange="updateLeadStatus('${escapeHtml(lead.customer_phone)}', this.value)">
+            ${statusOpts}
+          </select>
+        </td>
+        <td class="text-secondary text-13 tabular">${relTime(lead.updated_at)}</td>
+        <td>
+          <a class="btn-icon" href="${waLink}" target="_blank" rel="noopener" title="${t('leads.contact')}" aria-label="${t('leads.contact')}">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+              <path d="M12 2C6.48 2 2 6.48 2 12c0 1.77.46 3.43 1.27 4.88L2 22l5.25-1.25A9.95 9.95 0 0012 22c5.52 0 10-4.48 10-10S17.52 2 12 2z" stroke="currentColor" stroke-width="1.5"/>
+              <path d="M8.5 9.5c.5 1 1.5 2.5 3 3.5l1.5-1.5 2.5 2.5-1.5 1.5c-1.5.5-4-1-5.5-2.5S6.5 9.5 7 8l1.5-1.5L11 9l-2.5.5z" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/>
+            </svg>
+          </a>
+        </td>
+      </tr>`;
+  }).join('');
+
+  const cards = leads.map(lead => {
+    const waLink = `https://wa.me/${(lead.customer_phone || '').replace(/\D/g,'')}`;
+    const statusOpts = _LEAD_STATUSES.map(s =>
+      `<option value="${s}"${s === lead.status ? ' selected' : ''}>${escapeHtml(t('leads.status_' + s))}</option>`
+    ).join('');
+    return `
+      <div class="item-card">
+        <div class="item-card-title">${escapeHtml(lead.customer_name || lead.customer_phone)}</div>
+        <div class="item-card-sub">${escapeHtml(lead.customer_phone)}</div>
+        ${lead.summary ? `<div class="item-card-preview">${escapeHtml(lead.summary)}</div>` : ''}
+        <div class="item-card-footer">
+          <select class="form-select" style="font-size:12px;padding:4px 8px;height:auto"
+            onchange="updateLeadStatus('${escapeHtml(lead.customer_phone)}', this.value)">
+            ${statusOpts}
+          </select>
+          <span class="text-tertiary text-13 tabular" style="margin-left:auto">${relTime(lead.updated_at)}</span>
+          <a class="btn-icon" href="${waLink}" target="_blank" rel="noopener" aria-label="${t('leads.contact')}">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+              <path d="M12 2C6.48 2 2 6.48 2 12c0 1.77.46 3.43 1.27 4.88L2 22l5.25-1.25A9.95 9.95 0 0012 22c5.52 0 10-4.48 10-10S17.52 2 12 2z" stroke="currentColor" stroke-width="1.5"/>
+            </svg>
+          </a>
+        </div>
+      </div>`;
+  }).join('');
+
+  wrap.innerHTML = `
+    <div class="table-container">
+      <table>
+        <thead>
+          <tr>
+            <th>${t('leads.col_name')}</th>
+            <th>${t('leads.col_summary')}</th>
+            <th style="width:140px">${t('leads.col_status')}</th>
+            <th style="width:80px">${t('leads.col_time')}</th>
+            <th style="width:48px"></th>
+          </tr>
+        </thead>
+        <tbody>${rows}</tbody>
+      </table>
+    </div>
+    <div class="card-list">${cards}</div>`;
+}
+
+window.updateLeadStatus = async function(customerPhone, status) {
+  try {
+    await realAPI(`/api/leads/${encodeURIComponent(customerPhone)}`, {
+      method: 'PUT',
+      body: { status },
+    });
+  } catch (e) {
+    showToast(t('config.save_error'), 'error');
+  }
+};
+
+window.downloadLeadsCsv = async function() {
+  const res = await fetch('/api/leads/export.csv', {
+    headers: { 'Authorization': `Bearer ${localStorage.getItem('agente_token')}` },
+  });
+  if (res.status === 401) { logout(); return; }
+  const blob = await res.blob();
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = 'leads.csv';
+  a.click();
+  URL.revokeObjectURL(url);
+};
 
 /* ── CATALOG PAGE ─────────────────────────────────────────── */
 let drawerMode = null;

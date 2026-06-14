@@ -19,7 +19,7 @@ async def process(body: ProcessIn, pool=Depends(get_db)):
         logger.warning("process skipped non-private chat: customer_phone=%s", body.customer_phone)
         return ProcessOut(reply="", classification="OUT_OF_SCOPE")
     try:
-        return await process_message(pool, normalize_phone(body.business_phone), body.messages)
+        return await process_message(pool, normalize_phone(body.business_phone), body.messages, body.customer_phone)
     except Exception as exc:
         logger.error("process endpoint failed: %s", exc, exc_info=True)
         raise HTTPException(status_code=503, detail="Processing temporarily unavailable — n8n should retry")

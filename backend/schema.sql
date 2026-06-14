@@ -96,6 +96,17 @@ BEGIN
   RETURN d;
 END $$ LANGUAGE plpgsql IMMUTABLE;
 
+CREATE TABLE IF NOT EXISTS leads (
+  business_phone VARCHAR(30)  NOT NULL,
+  customer_phone VARCHAR(30)  NOT NULL,
+  customer_name  VARCHAR(200),
+  summary        TEXT,
+  status         VARCHAR(20)  DEFAULT 'new',
+  created_at     TIMESTAMP    DEFAULT NOW(),
+  updated_at     TIMESTAMP    DEFAULT NOW(),
+  PRIMARY KEY (business_phone, customer_phone)
+);
+
 -- Idempotent migration: product images added after initial deploy
 ALTER TABLE products ADD COLUMN IF NOT EXISTS image_url TEXT;
 

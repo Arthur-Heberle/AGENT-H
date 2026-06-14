@@ -6,6 +6,7 @@ from asyncpg import Pool
 
 from core.config import settings
 from models.process import ChatMessage, ProcessOut
+from repositories.leads import upsert_lead
 from repositories.products import similarity_search
 from services.embedding import embed
 from services.llm import chat
@@ -83,6 +84,7 @@ async def process_message(
     pool: Pool,
     business_phone: str,
     messages: list[ChatMessage],
+    customer_phone: str | None = None,
 ) -> ProcessOut:
     # Load per-client settings and enforce business hours in one query
     row = await pool.fetchrow(
@@ -165,5 +167,19 @@ async def process_message(
 
     if classification != "QUALIFIED_LEAD":
         lead_summary = None
+
+    if classification == "QUALIFIED_LEAD" and customer_phone:
+        customer_name: str | None = None
+        name_row = await pool.fetchrow(
+            "SELECT customer_name FROM conversations WHERE customer_phone=$1 AND business_phone=$2",
+            customer_phone,
+            business_phone,
+        )
+        if name_row:
+            customer_name = name_row["customer_name"]
+        try:
+            await upsert_lead(pool, business_phone, customer_phone, customer_name, lead_summary)
+        except Exception:
+            logger.exception("Failed to upsert lead for %s", customer_phone)
 
     return ProcessOut(reply=reply, classification=classification, lead_summary=lead_summary)

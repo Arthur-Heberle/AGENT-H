@@ -577,6 +577,15 @@ input, textarea, select { font-family: inherit; }
 }
 .pill-gray::before { background: var(--text-tertiary); }
 
+.lead-new      { background: #EEF4FF; color: #3366CC; }
+.lead-new::before { background: #3366CC; }
+.lead-contacted { background: #FFF8E6; color: #A06800; }
+.lead-contacted::before { background: #A06800; }
+.lead-won      { background: #E8F5EF; color: var(--green); }
+.lead-won::before { background: var(--green); }
+.lead-lost     { background: #FBE9E9; color: var(--red); }
+.lead-lost::before { background: var(--red); }
+
 /* ── TABLES ──────────────────────────────────────────────── */
 .table-container {
   overflow-x: auto;

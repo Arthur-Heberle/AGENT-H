@@ -6,7 +6,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import RedirectResponse
 from fastapi.staticfiles import StaticFiles
 
-from api.routes import auth, conversations, process, products, settings, stats
+from api.routes import auth, conversations, leads, process, products, settings, stats
 from core.database import close_pool, init_db
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(name)s: %(message)s")
@@ -32,6 +32,7 @@ app.add_middleware(
 # API routers
 app.include_router(auth.router)
 app.include_router(products.router, prefix="/api")
+app.include_router(leads.router, prefix="/api")
 app.include_router(conversations.router, prefix="/api")
 app.include_router(stats.router, prefix="/api")
 app.include_router(settings.router, prefix="/api")
