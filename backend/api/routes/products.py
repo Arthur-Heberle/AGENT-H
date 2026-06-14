@@ -38,6 +38,9 @@ async def add_product(
     return await create_product(pool, business_phone, data)
 
 
+_MAX_CSV_BYTES = 10 * 1024 * 1024  # 10 MB
+
+
 @router.post("/products/import/preview")
 async def import_preview(
     file: UploadFile,
@@ -49,6 +52,8 @@ async def import_preview(
     if not is_csv:
         raise HTTPException(status_code=400, detail="File must be a CSV")
     file_bytes = await file.read()
+    if len(file_bytes) > _MAX_CSV_BYTES:
+        raise HTTPException(status_code=400, detail="CSV must be ≤ 10 MB")
     return await import_service.preview(file_bytes)
 
 

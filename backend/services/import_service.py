@@ -1,6 +1,7 @@
 import csv
 import io
 import json
+import logging
 from decimal import Decimal, InvalidOperation
 
 from models.product import ProductIn
@@ -9,6 +10,9 @@ from services.embedding import embed_many
 from services.llm import chat
 
 _CANONICAL_FIELDS = ["name", "category", "price", "quantity", "description", "specs"]
+_EMBED_BATCH_SIZE = 100
+
+logger = logging.getLogger(__name__)
 
 
 async def preview(file_bytes: bytes) -> dict:
@@ -63,7 +67,8 @@ async def preview(file_bytes: bytes) -> dict:
         suggested_mapping = {
             k: v for k, v in suggested_mapping.items() if k in _CANONICAL_FIELDS
         }
-    except Exception:
+    except Exception as exc:
+        logger.warning("LLM column mapping failed: %s", exc)
         suggested_mapping = {}
 
     return {
@@ -71,6 +76,28 @@ async def preview(file_bytes: bytes) -> dict:
         "sample_rows": sample_rows,
         "suggested_mapping": suggested_mapping,
     }
+
+
+def _get_str(row: dict, mapping: dict, field: str) -> str | None:
+    col = mapping.get(field)
+    if col and row.get(col):
+        val = str(row[col]).strip()
+        return val if val else None
+    return None
+
+
+def _parse_price(raw: str) -> Decimal | None:
+    """Parse price strings including Brazilian format (R$ 1.234,56)."""
+    try:
+        s = raw.replace("R$", "").replace(" ", "").strip()
+        if "," in s and "." in s:
+            # Dot is thousands separator, comma is decimal
+            s = s.replace(".", "").replace(",", ".")
+        elif "," in s:
+            s = s.replace(",", ".")
+        return Decimal(s)
+    except (InvalidOperation, ValueError):
+        return None
 
 
 async def commit(
@@ -84,7 +111,6 @@ async def commit(
     skipped = 0
     errors: list[str] = []
 
-    # Build ProductIn objects and collect embed texts
     products_to_insert: list[ProductIn] = []
     row_indices: list[int] = []
 
@@ -95,66 +121,47 @@ async def commit(
             skipped += 1
             continue
 
-        # Parse price
-        price = None
         price_col = mapping.get("price")
-        if price_col and row.get(price_col):
-            try:
-                # Remove common currency symbols and whitespace
-                raw_price = str(row[price_col]).replace("R$", "").replace(",", ".").strip()
-                price = Decimal(raw_price)
-            except (InvalidOperation, ValueError):
-                price = None
+        price = _parse_price(str(row[price_col])) if price_col and row.get(price_col) else None
 
-        # Parse quantity
-        quantity = 0
         qty_col = mapping.get("quantity")
+        quantity = 0
         if qty_col and row.get(qty_col):
             try:
                 quantity = int(str(row[qty_col]).strip())
             except (ValueError, TypeError):
                 quantity = 0
 
-        # Parse string fields
-        def get_str(field: str) -> str | None:
-            col = mapping.get(field)
-            if col and row.get(col):
-                val = str(row[col]).strip()
-                return val if val else None
-            return None
-
-        product = ProductIn(
+        products_to_insert.append(ProductIn(
             name=name,
-            category=get_str("category"),
+            category=_get_str(row, mapping, "category"),
             price=price,
             quantity=quantity,
-            description=get_str("description"),
-            specs=get_str("specs"),
-        )
-        products_to_insert.append(product)
+            description=_get_str(row, mapping, "description"),
+            specs=_get_str(row, mapping, "specs"),
+        ))
         row_indices.append(idx)
 
     if not products_to_insert:
         return {"imported": 0, "skipped": skipped, "errors": errors}
 
-    # Batch embed all products at once
+    # Batch embed in chunks to respect API limits
     embed_texts = [
-        " ".join(
-            filter(None, [p.name, p.category, p.description, p.specs])
-        )
+        " ".join(filter(None, [p.name, p.category, p.description, p.specs]))
         for p in products_to_insert
     ]
+    embeddings: list[list[float]] = []
+    for i in range(0, len(embed_texts), _EMBED_BATCH_SIZE):
+        chunk = embed_texts[i : i + _EMBED_BATCH_SIZE]
+        try:
+            embeddings.extend(await embed_many(chunk))
+        except Exception as e:
+            return {
+                "imported": imported,
+                "skipped": skipped,
+                "errors": errors + [f"Embedding batch failed at row {row_indices[i] + 1}: {e}"],
+            }
 
-    try:
-        embeddings = await embed_many(embed_texts)
-    except Exception as e:
-        return {
-            "imported": 0,
-            "skipped": skipped,
-            "errors": [f"Embedding batch failed: {e}"],
-        }
-
-    # Insert each product
     for product, embedding, row_idx in zip(products_to_insert, embeddings, row_indices):
         try:
             await create_product(pool, business_phone, product, embedding)
