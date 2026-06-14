@@ -5,12 +5,14 @@ import logging
 from decimal import Decimal, InvalidOperation
 
 from models.product import ProductIn
-from repositories.products import create_product
+from repositories.products import create_product, get_active_product_names
 from services.embedding import embed_many
 from services.llm import chat
 
 _CANONICAL_FIELDS = ["name", "category", "price", "quantity", "description", "specs"]
 _EMBED_BATCH_SIZE = 100
+# Mirror ImportCommitIn.rows max_length so preview never offers more rows than commit accepts.
+_MAX_IMPORT_ROWS = 500
 
 logger = logging.getLogger(__name__)
 
@@ -70,10 +72,18 @@ async def preview(file_bytes: bytes) -> dict:
         logger.warning("LLM column mapping failed: %s", exc)
         suggested_mapping = {}
 
+    # Cap the rows echoed back for commit to the limit ImportCommitIn enforces, so a large
+    # CSV doesn't sail through preview only to fail commit validation with an opaque 422.
+    total_rows = len(all_rows)
+    rows = all_rows[:_MAX_IMPORT_ROWS]
+
     return {
         "columns": list(columns),
         "sample_rows": sample_rows,   # first 5 rows for UI preview display
-        "rows": all_rows,             # all rows echoed back for commit
+        "rows": rows,                 # rows echoed back for commit (capped at _MAX_IMPORT_ROWS)
+        "total_rows": total_rows,
+        "truncated": total_rows > _MAX_IMPORT_ROWS,
+        "max_rows": _MAX_IMPORT_ROWS,
         "suggested_mapping": suggested_mapping,
     }
 
@@ -87,7 +97,11 @@ def _get_str(row: dict, mapping: dict, field: str) -> str | None:
 
 
 def _parse_price(raw: str) -> Decimal | None:
-    """Parse price strings including Brazilian format (R$ 1.234,56)."""
+    """Parse price strings including Brazilian format (R$ 1.234,56).
+
+    Assumes Brazilian convention (dot = thousands, comma = decimal). US-style
+    "1,234.56" is intentionally not disambiguated — the target market is Brazil.
+    """
     try:
         s = raw.replace("R$", "").replace(" ", "").strip()
         if "," in s and "." in s:
@@ -114,12 +128,22 @@ async def commit(
     products_to_insert: list[ProductIn] = []
     row_indices: list[int] = []
 
+    # Dedupe against existing active products and within the file itself, so re-running the
+    # same import (e.g. after a partial failure) doesn't create duplicate products.
+    seen_names = await get_active_product_names(pool, business_phone)
+
     for idx, row in enumerate(rows):
         name_col = mapping.get("name")
         name = (row.get(name_col) or "").strip() if name_col else ""
         if not name:
             skipped += 1
             continue
+
+        name_key = name.lower()
+        if name_key in seen_names:
+            skipped += 1
+            continue
+        seen_names.add(name_key)
 
         price_col = mapping.get("price")
         price = _parse_price(str(row[price_col])) if price_col and row.get(price_col) else None
@@ -161,6 +185,16 @@ async def commit(
                 "skipped": skipped,
                 "errors": errors + [f"Embedding batch failed at row {row_indices[i] + 1}: {e}"],
             }
+
+    # Guard against a malformed embedding response silently dropping products via zip().
+    if len(embeddings) != len(products_to_insert):
+        return {
+            "imported": 0,
+            "skipped": skipped,
+            "errors": errors + [
+                f"Embedding count mismatch: expected {len(products_to_insert)}, got {len(embeddings)}"
+            ],
+        }
 
     for product, embedding, row_idx in zip(products_to_insert, embeddings, row_indices):
         try:

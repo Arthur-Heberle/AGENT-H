@@ -143,6 +143,15 @@ async def similarity_search(
     return [dict(r) for r in rows]
 
 
+async def get_active_product_names(pool: Pool, business_phone: str) -> set[str]:
+    """Return normalized (stripped + lowercased) names of active products, for import dedupe."""
+    rows = await pool.fetch(
+        "SELECT name FROM products WHERE business_phone = $1 AND active = true",
+        business_phone,
+    )
+    return {r["name"].strip().lower() for r in rows if r["name"]}
+
+
 async def get_custom_categories(pool: Pool, business_phone: str) -> list[str]:
     rows = await pool.fetch(
         """

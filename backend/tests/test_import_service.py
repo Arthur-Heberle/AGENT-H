@@ -194,6 +194,7 @@ async def test_commit_basic_import():
     pool = MagicMock()
 
     with (
+        patch("services.import_service.get_active_product_names", new_callable=AsyncMock, return_value=set()),
         patch("services.import_service.embed_many", new_callable=AsyncMock) as mock_embed,
         patch("services.import_service.create_product", new_callable=AsyncMock) as mock_create,
     ):
@@ -216,6 +217,7 @@ async def test_commit_skips_rows_without_name():
     pool = MagicMock()
 
     with (
+        patch("services.import_service.get_active_product_names", new_callable=AsyncMock, return_value=set()),
         patch("services.import_service.embed_many", new_callable=AsyncMock) as mock_embed,
         patch("services.import_service.create_product", new_callable=AsyncMock) as mock_create,
     ):
@@ -243,6 +245,7 @@ async def test_commit_price_parsing_variants():
         captured_products.append(product)
 
     with (
+        patch("services.import_service.get_active_product_names", new_callable=AsyncMock, return_value=set()),
         patch("services.import_service.embed_many", new_callable=AsyncMock) as mock_embed,
         patch("services.import_service.create_product", new_callable=AsyncMock, side_effect=capture_create),
     ):
@@ -270,6 +273,7 @@ async def test_commit_quantity_parsing():
         captured_products.append(product)
 
     with (
+        patch("services.import_service.get_active_product_names", new_callable=AsyncMock, return_value=set()),
         patch("services.import_service.embed_many", new_callable=AsyncMock) as mock_embed,
         patch("services.import_service.create_product", new_callable=AsyncMock, side_effect=capture_create),
     ):
@@ -288,6 +292,7 @@ async def test_commit_returns_errors_on_create_failure():
     pool = MagicMock()
 
     with (
+        patch("services.import_service.get_active_product_names", new_callable=AsyncMock, return_value=set()),
         patch("services.import_service.embed_many", new_callable=AsyncMock) as mock_embed,
         patch("services.import_service.create_product", new_callable=AsyncMock) as mock_create,
     ):
@@ -301,6 +306,85 @@ async def test_commit_returns_errors_on_create_failure():
 
 
 @pytest.mark.anyio
+async def test_commit_dedupes_against_existing_products():
+    """Rows whose name already exists (case-insensitive) are skipped, not re-inserted."""
+    rows = [
+        {"nome": "Sofá Rubi", "preco": "100", "quantidade": "1", "categoria": "Sofás", "descricao": ""},
+        {"nome": "Mesa Nova", "preco": "200", "quantidade": "1", "categoria": "Mesas", "descricao": ""},
+    ]
+    pool = MagicMock()
+
+    with (
+        patch("services.import_service.get_active_product_names", new_callable=AsyncMock, return_value={"sofá rubi"}),
+        patch("services.import_service.embed_many", new_callable=AsyncMock) as mock_embed,
+        patch("services.import_service.create_product", new_callable=AsyncMock) as mock_create,
+    ):
+        mock_embed.return_value = [[0.1] * 1536]  # only Mesa Nova survives
+        result = await commit(rows, MAPPING, "+5511999999999", pool)
+
+    assert result["imported"] == 1
+    assert result["skipped"] == 1
+    assert mock_create.await_count == 1
+
+
+@pytest.mark.anyio
+async def test_commit_dedupes_within_file():
+    """The same name appearing twice in the file imports once."""
+    rows = [
+        {"nome": "Sofá Rubi", "preco": "100", "quantidade": "1", "categoria": "Sofás", "descricao": ""},
+        {"nome": "sofá rubi", "preco": "150", "quantidade": "2", "categoria": "Sofás", "descricao": ""},
+    ]
+    pool = MagicMock()
+
+    with (
+        patch("services.import_service.get_active_product_names", new_callable=AsyncMock, return_value=set()),
+        patch("services.import_service.embed_many", new_callable=AsyncMock) as mock_embed,
+        patch("services.import_service.create_product", new_callable=AsyncMock) as mock_create,
+    ):
+        mock_embed.return_value = [[0.1] * 1536]
+        result = await commit(rows, MAPPING, "+5511999999999", pool)
+
+    assert result["imported"] == 1
+    assert result["skipped"] == 1
+
+
+@pytest.mark.anyio
+async def test_commit_embedding_count_mismatch_aborts():
+    """A short embedding response must error out instead of silently dropping products."""
+    rows = [
+        {"nome": "A", "preco": "10", "quantidade": "1", "categoria": "", "descricao": ""},
+        {"nome": "B", "preco": "20", "quantidade": "1", "categoria": "", "descricao": ""},
+    ]
+    pool = MagicMock()
+
+    with (
+        patch("services.import_service.get_active_product_names", new_callable=AsyncMock, return_value=set()),
+        patch("services.import_service.embed_many", new_callable=AsyncMock) as mock_embed,
+        patch("services.import_service.create_product", new_callable=AsyncMock) as mock_create,
+    ):
+        mock_embed.return_value = [[0.1] * 1536]  # one embedding for two products
+        result = await commit(rows, MAPPING, "+5511999999999", pool)
+
+    assert result["imported"] == 0
+    assert any("mismatch" in e.lower() for e in result["errors"])
+    mock_create.assert_not_called()
+
+
+@pytest.mark.anyio
+async def test_preview_caps_rows_and_flags_truncated():
+    """A CSV larger than the commit limit is capped, with total/truncated reported."""
+    header = "nome,preco\n"
+    big = header + "".join(f"Produto {i},{i}.00\n" for i in range(600))
+    with patch("services.import_service.chat", new_callable=AsyncMock) as mock_chat:
+        mock_chat.return_value = json.dumps({"name": "nome", "price": "preco"})
+        result = await preview(big.encode("utf-8"))
+
+    assert result["total_rows"] == 600
+    assert result["truncated"] is True
+    assert len(result["rows"]) == result["max_rows"] == 500
+
+
+@pytest.mark.anyio
 async def test_commit_embed_failure_returns_early():
     rows = [
         {"nome": "Sofá Rubi", "preco": "100", "quantidade": "1", "categoria": "Sofás", "descricao": ""},
@@ -308,6 +392,7 @@ async def test_commit_embed_failure_returns_early():
     pool = MagicMock()
 
     with (
+        patch("services.import_service.get_active_product_names", new_callable=AsyncMock, return_value=set()),
         patch("services.import_service.embed_many", new_callable=AsyncMock) as mock_embed,
         patch("services.import_service.create_product", new_callable=AsyncMock) as mock_create,
     ):

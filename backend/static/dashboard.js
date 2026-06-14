@@ -165,6 +165,7 @@ const i18n = {
     'catalog.import_importing': 'Importando…',
     'catalog.import_success': '{n} produtos importados, {s} ignorados.',
     'catalog.import_error': 'Erro ao importar arquivo.',
+    'catalog.import_truncated': 'O arquivo tem {total} linhas. Apenas as primeiras {max} serão importadas.',
   },
   en: {
     'nav.overview': 'Overview',
@@ -317,6 +318,7 @@ const i18n = {
     'catalog.import_importing': 'Importing…',
     'catalog.import_success': '{n} products imported, {s} skipped.',
     'catalog.import_error': 'Error importing file.',
+    'catalog.import_truncated': 'The file has {total} rows. Only the first {max} will be imported.',
   }
 };
 
@@ -1636,7 +1638,13 @@ window.runImportPreview = async function() {
 function _renderImportStep2() {
   const body = document.getElementById('import-modal-body');
   if (!body || !_importPreviewData) return;
-  const { columns, sample_rows, suggested_mapping } = _importPreviewData;
+  const { columns, sample_rows, suggested_mapping, truncated, total_rows, max_rows } = _importPreviewData;
+
+  const truncatedWarning = truncated
+    ? `<div class="import-truncated-warning" style="background:var(--gold-light);border:1px solid var(--border-dark);border-radius:8px;padding:10px 12px;margin-bottom:12px;font-size:13px">
+        ${escapeHtml(t('catalog.import_truncated').replace('{total}', total_rows).replace('{max}', max_rows))}
+      </div>`
+    : '';
 
   const FIELD_LABELS = {
     name: t('catalog.import_field_name'),
@@ -1664,6 +1672,7 @@ function _renderImportStep2() {
   ).join('');
 
   body.innerHTML = `
+    ${truncatedWarning}
     <h3 style="font-size:14px;font-weight:600;margin-bottom:12px">${t('catalog.import_mapping')}</h3>
     <div class="import-mapping-grid">${mappingRows}</div>
     <h3 style="font-size:14px;font-weight:600;margin-bottom:8px">${t('catalog.import_preview')}</h3>
