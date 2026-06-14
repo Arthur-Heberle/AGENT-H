@@ -77,8 +77,8 @@ const i18n = {
     'btn.logout': 'Sair',
     'btn.edit': 'Editar',
     'btn.delete': 'Excluir',
-    'login.title': 'Agente',
-    'login.subtitle': 'Gerencie seu assistente no WhatsApp',
+    'login.title': 'Agente H',
+    'login.subtitle': 'Um agente de IA que conhece sua empresa.',
     'login.email': 'E-mail',
     'login.password': 'Senha',
     'login.btn': 'Entrar',
@@ -230,8 +230,8 @@ const i18n = {
     'btn.logout': 'Logout',
     'btn.edit': 'Edit',
     'btn.delete': 'Delete',
-    'login.title': 'Agente',
-    'login.subtitle': 'Manage your WhatsApp AI assistant',
+    'login.title': 'Agente H',
+    'login.subtitle': 'An AI agent that knows your company.',
     'login.email': 'Email',
     'login.password': 'Password',
     'login.btn': 'Sign in',
@@ -1970,7 +1970,7 @@ function renderConfigAgent() {
           <div>
             <div class="config-field-label">${t('config.agent_lang')}</div>
           </div>
-          <select class="form-select" id="cfg-lang" style="width:220px">
+          <select class="form-select config-language-select" id="cfg-lang">
             <option value="auto" ${s.ai_language === 'auto' ? 'selected' : ''}>${t('config.agent_lang_auto')}</option>
             <option value="pt" ${s.ai_language === 'pt' ? 'selected' : ''}>${t('config.agent_lang_pt')}</option>
             <option value="en" ${s.ai_language === 'en' ? 'selected' : ''}>${t('config.agent_lang_en')}</option>

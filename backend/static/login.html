@@ -4,7 +4,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Agente — Entrar</title>
+  <title>Agente H — Entrar</title>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link
@@ -210,8 +210,8 @@
     <!-- Card -->
     <div class="login-card">
       <div class="login-logo">
-        <span class="login-wordmark">Agente</span>
-        <p class="login-subtitle" id="login-subtitle">Gerencie seu assistente no WhatsApp</p>
+        <span class="login-wordmark">Agente H</span>
+        <p class="login-subtitle" id="login-subtitle">Um agente de IA que conhece sua empresa.</p>
       </div>
 
       <!-- Tab bar -->
@@ -269,12 +269,12 @@
             </div>
             <div class="login-input-group">
               <label class="login-label" for="reg-name" id="label-name">Nome do negócio</label>
-              <input type="text" id="reg-name" class="login-input" placeholder="My Store" autocomplete="organization"
+              <input type="text" id="reg-name" class="login-input" placeholder="Minha Empresa" autocomplete="organization"
                 required />
             </div>
             <div class="login-input-group">
               <label class="login-label" for="reg-email" id="label-reg-email">E-mail</label>
-              <input type="email" id="reg-email" name="email" class="login-input" placeholder="you@email.com"
+              <input type="email" id="reg-email" name="email" class="login-input" placeholder="voce@empresa.com"
                 autocomplete="email" required />
             </div>
             <div class="login-input-group">
@@ -324,7 +324,7 @@
       // ── i18n ──────────────────────────────────────────────────────────────
       const S = {
         pt: {
-          subtitle: 'Gerencie seu assistente no WhatsApp',
+          subtitle: 'Um agente de IA que conhece sua empresa.',
           tabSignin: 'Entrar',
           tabRegister: 'Criar conta',
           email: 'E-mail',
@@ -332,6 +332,9 @@
           signinBtn: 'Entrar',
           phone: 'WhatsApp / Telefone',
           name: 'Nome do negócio',
+          namePlaceholder: 'Minha Empresa',
+          emailPlaceholder: 'voce@empresa.com',
+          showPassword: 'Mostrar senha',
           regEmail: 'E-mail',
           regPassword: 'Senha',
           sendBtn: 'Enviar código',
@@ -349,7 +352,7 @@
           errGeneric: 'Erro inesperado. Tente novamente.',
         },
         en: {
-          subtitle: 'Manage your WhatsApp AI assistant',
+          subtitle: 'An AI agent that knows your company.',
           tabSignin: 'Sign in',
           tabRegister: 'Create account',
           email: 'Email',
@@ -357,6 +360,9 @@
           signinBtn: 'Sign in',
           phone: 'WhatsApp / Phone',
           name: 'Business name',
+          namePlaceholder: 'My Company',
+          emailPlaceholder: 'you@company.com',
+          showPassword: 'Show password',
           regEmail: 'Email',
           regPassword: 'Password',
           sendBtn: 'Send code',
@@ -388,6 +394,9 @@
         document.getElementById('login-btn').textContent = t('signinBtn');
         document.getElementById('label-phone').textContent = t('phone');
         document.getElementById('label-name').textContent = t('name');
+        document.getElementById('reg-name').placeholder = t('namePlaceholder');
+        document.getElementById('reg-email').placeholder = t('emailPlaceholder');
+        document.querySelectorAll('.pw-eye').forEach(btn => btn.setAttribute('aria-label', t('showPassword')));
         document.getElementById('label-reg-email').textContent = t('regEmail');
         document.getElementById('label-reg-password').textContent = t('regPassword');
         document.getElementById('register-btn').textContent = t('sendBtn');

@@ -227,7 +227,7 @@ input, textarea, select { font-family: inherit; }
 }
 
 .nav-group[data-open] .nav-children {
-  max-height: 120px;
+  max-height: 180px;
 }
 
 .nav-sub-item {
@@ -1301,6 +1301,11 @@ th.num-center {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 16px;
+}
+
+.config-language-select {
+  width: 280px;
+  max-width: 100%;
 }
 
 /* ── LOGIN PAGE ──────────────────────────────────────────── */
