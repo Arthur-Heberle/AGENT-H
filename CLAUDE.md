@@ -41,7 +41,8 @@ ai_agent_whatsapp/
 │   ├── models/                 # Pydantic DTOs (request/response shapes)
 │   ├── services/               # Business logic and external API calls
 │   ├── repositories/           # All SQL queries (data access layer)
-│   └── static/                 # Frontend: dashboard.html, login.html, dashboard.js, dashboard.css
+│   └── static/                 # Frontend: dashboard.html, login.html, dashboard.js, dashboard.css, mobile.css
+│       └── uploads/            # Product images (gitignored; ephemeral on Railway)
 ├── CLAUDE.md                   # This file
 ├── ARCHITECTURE.md             # System flow + DB schema
 ├── backend/CLAUDE.md           # Backend deep-dive
@@ -55,7 +56,8 @@ ai_agent_whatsapp/
 - **Async everywhere:** FastAPI + asyncpg + httpx + openai async client. No sync DB calls.
 - **Database schema auto-applied:** `core/database.py` runs `schema.sql` on startup via `init_db()`.
 - **n8n owns message writes:** The Python backend never writes to `messages` or `conversations` tables directly during chat. n8n does that. Python only reads from them (for context, history, stats).
-- **Products are the exception:** Python writes products (with embeddings) and reads them for RAG.
+- **Products and leads are the exception:** Python writes products (with embeddings) and the `leads` table. `leads` is upserted by `services/rag.py` every time the LLM classifies a message as `QUALIFIED_LEAD` — n8n never touches it.
+- **Mobile:** `mobile.css` is a separate stylesheet (`<= 768px` breakpoints) covering the WhatsApp-style master/detail nav for conversations and card-list fallbacks for tables. It is loaded after `dashboard.css` so it can override without `!important`.
 
 ## Navigation to Deeper Docs
 

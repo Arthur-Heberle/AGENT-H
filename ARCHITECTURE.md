@@ -22,6 +22,7 @@ FastAPI Backend (/process endpoint)
     │ 5. Build prompt: system_prompt + products + conversation history
     │ 6. LLM call (OpenAI-compatible, configurable provider e.g. DeepSeek)
     │ 7. Parse classification from LLM reply
+    │ 8. If QUALIFIED_LEAD → upsert into `leads` table (Python-owned, n8n does not touch it)
     │ Returns: {reply, classification}
     ▼
 n8n Workflow (resumes)
@@ -98,6 +99,7 @@ Indexes: `idx_messages_status_time(processing_status, created_at)`, `idx_message
 | specs | TEXT | Included in embedding |
 | active | BOOLEAN | Soft delete flag |
 | embedding | VECTOR(1536) | OpenAI text-embedding-3-small |
+| image_url | TEXT | Optional. Path like `/static/uploads/{biz_phone}/{id}.{ext}` |
 | updated_at | TIMESTAMP | |
 
 Indexes: `idx_products_business(business_phone, active)`, IVFFlat index on embedding (cosine, lists=100)

@@ -2,9 +2,10 @@
 
 ## Architecture: Vanilla JS SPA
 
-Zero build system. Two files do everything:
-- `dashboard.js` (~1,409 lines) — router, i18n, mock API, all page renderers
-- `dashboard.css` (~1,352 lines) — design tokens, all component styles
+Zero build system. Three files do most of the work:
+- `dashboard.js` — router, i18n, `realAPI`, settings cache, all page renderers
+- `dashboard.css` — design tokens, all component styles
+- `mobile.css` — breakpoint overrides at `≤ 768px` (master/detail nav, card-list tables)
 
 **No webpack, Vite, npm, or TypeScript.** Pure ES6 served directly by FastAPI's static file mount at `/static`.
 
@@ -13,17 +14,20 @@ Zero build system. Two files do everything:
 ```javascript
 // dashboard.js
 const ROUTES = {
-  '/overview':  renderOverview,
-  '/conversas': renderConversas,
-  '/catalogo':  renderCatalogo,
-  '/config':    renderConfig,
+  '#/overview':       renderOverview,
+  '#/conversas':      renderConversas,
+  '#/catalogo':       renderCatalogo,
+  '#/leads':          renderLeads,
+  '#/config':         renderConfig,          // redirects to #/config/general
+  '#/config/general': renderConfigGeneral,
+  '#/config/theme':   renderConfigThemeSection,
+  '#/config/agent':   renderConfigAgent,
+  '#/config/hours':   renderConfigHours,
 };
-
-window.addEventListener('hashchange', () => navigate(location.hash));
 ```
 
-Navigate programmatically: `location.hash = '#/catalogo'`  
-Active nav item: sidebar `<a>` whose `href` matches current hash gets class `.active`.
+Navigate programmatically: `navigate('#/catalogo')` (uses `history.pushState` + calls `router()`).  
+Active nav item: `.nav-item[data-route]` and `.nav-sub-item[data-route]` get class `.active` when their `data-route` matches the current hash. The config nav group auto-expands when any `#/config/*` route is active.
 
 ## Adding a New Page
 
@@ -57,37 +61,70 @@ Language persists via `localStorage['agente_lang']`. Toggle calls `lang = newLan
 3. Use `t('your.key')` in the renderer
 
 **Existing namespaces:**
-- `nav.*` — sidebar navigation labels
+- `nav.*` — sidebar navigation labels (including `nav.config_agent`, `nav.config_hours`, `nav.leads`)
 - `kpi.*` — KPI card labels and deltas
 - `table.*` — table headers
 - `catalog.*` — product form labels and hints
-- `config.*` — settings page labels and section titles
+- `config.*` — settings page labels; `config.agent_*` for AI agent page, `config.hours_*` / `config.day_*` for business hours page
+- `leads.*` — leads page labels and status options
 - `status.*` — status pill text (active, paused, inactive, ai_on, ai_off)
-- `btn.*` — button labels (logout, edit, delete, retry, open)
+- `btn.*` — button labels (logout, edit, delete, retry, open, back)
 - `empty.*` — empty state messages
 - `error.*` — error messages
 
 ## API Communication
 
-All authenticated requests go through `apiFetch`:
+All authenticated requests go through `realAPI`:
 
 ```javascript
-async function apiFetch(path, options = {}) {
-  const token = localStorage.getItem('agente_token');
-  const res = await fetch(path, {
-    ...options,
+async function realAPI(endpoint, opts = {}) {
+  const res = await fetch(endpoint, {
+    method: opts.method || 'GET',
     headers: {
       'Content-Type': 'application/json',
-      ...(token ? { Authorization: `Bearer ${token}` } : {}),
-      ...options.headers,
+      'Authorization': `Bearer ${localStorage.getItem('agente_token')}`,
     },
+    body: opts.body ? JSON.stringify(opts.body) : undefined,
   });
-  if (res.status === 401) { logout(); return; }
+  if (res.status === 401) {
+    localStorage.removeItem('agente_token');
+    window.location.href = '/login';
+    throw new Error('Session expired');
+  }
+  if (!res.ok) throw new Error(await res.text());
   return res.json();
 }
 ```
 
-**Mock API:** A `USE_MOCK_API` constant at the top of `dashboard.js` switches between the real backend and hardcoded mock data (600ms simulated delay). Use mock for UI development without a running backend.
+`mockAPI` is an alias for `realAPI` (the old mock/real toggle was removed).
+
+## Settings Cache
+
+`GET /api/settings` returns the full `SettingsOut` (system_prompt, ai_language, business_hours). Because `PUT /api/settings` requires the whole object, a module-level `_settings` cache avoids re-fetching on every keystroke:
+
+```javascript
+let _settings = null;
+
+async function loadSettings() {
+  if (_settings) return _settings;
+  _settings = await realAPI('/api/settings');
+  return _settings;
+}
+
+async function saveSettings() {
+  _settings = await realAPI('/api/settings', { method: 'PUT', body: _settings });
+  return _settings;
+}
+```
+
+Both `renderConfigAgent` and `renderConfigHours` call `loadSettings()`, mutate `_settings` fields, then call `saveSettings()`. The cache is never invalidated between config sub-pages — navigating from agent to hours and back shows the latest saved values without a new network call.
+
+## Mobile Navigation
+
+`mobile.css` applies at `≤ 768px`:
+- Conversations page: WhatsApp-style master/detail. Conversation list and message thread are full-width panels; `isMobile()` helper switches between showing list vs. detail.
+- Tables (catalog, leads): fall back to `.item-card` card layouts rendered by the same JS data — the renderer checks `isMobile()` and emits either `<table>` rows or card divs.
+- Sidebar: off-canvas drawer toggled by `.sidebar-toggle` hamburger button; `.sidebar-backdrop` overlay dismisses it.
 
 ## Design Tokens (CSS Variables)
 
