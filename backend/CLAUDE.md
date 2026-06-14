@@ -57,6 +57,11 @@ Mounts `/static` directory. Serves `/dashboard` and `/login` HTML pages.
 | DELETE | `/api/account` | JWT required | — | Delete account (cascades) |
 | GET | `/api/settings` | JWT required | — | AI settings |
 | PUT | `/api/settings` | JWT required | — | Upsert AI settings |
+| POST | `/api/products/{id}/image` | JWT required | — | Upload product image (UploadFile, ≤5 MB) |
+| DELETE | `/api/products/{id}/image` | JWT required | — | Clear product image URL |
+| GET | `/api/leads` | JWT required | `repositories/leads.py` | List captured leads |
+| PUT | `/api/leads/{customer_phone}` | JWT required | `repositories/leads.py` | Update lead status |
+| GET | `/api/leads/export.csv` | JWT required | `repositories/leads.py` | Download leads as CSV |
 | POST | `/process` | X-Process-Secret | `rag.process_message()` | n8n RAG call |
 | GET | `/health` | None | — | `{"status": "ok"}` |
 
@@ -89,7 +94,8 @@ OTP storage is **in-memory** (`dict` in `api/routes/auth.py`): `{phone: {code, e
 6. Assemble prompt: custom system prompt + formatted product block + classification instructions
 7. `llm.chat(messages)` → LLM reply (OpenAI-compatible API)
 8. Parse `CLASSIFICATION: <type>` from reply end — strips it from user-visible reply
-9. Return `ProcessOut(reply=..., classification=...)`
+9. If `QUALIFIED_LEAD`: upsert into `leads` table (summary + customer_name from conversations)
+10. Return `ProcessOut(reply=..., classification=...)`
 
 Classifications: `QUALIFIED_LEAD | GENERAL_QUESTION | GREETING | OUT_OF_SCOPE`
 
@@ -125,7 +131,7 @@ async def list_products(conn: asyncpg.Connection, business_phone: str) -> list[a
 |---------|-------------|--------------|
 | `services/rag.py` | `process_message()` | Full RAG pipeline (see above) |
 | `services/llm.py` | `chat(messages, system)` | OpenAI-compatible chat completion |
-| `services/embedding.py` | `embed(text)` | Returns 1536-dim float list |
+| `services/embedding.py` | `embed(text)`, `embed_many(texts)` | Single or batch 1536-dim embeddings |
 | `services/product_service.py` | `create_product()`, `update_product()` | Handles embedding logic + repo calls |
 | `services/stats_service.py` | `get_stats()` | Aggregates KPI metrics from DB |
 | `services/sms.py` | `send_otp(phone, code)` | POST to Evolution API WhatsApp send endpoint |

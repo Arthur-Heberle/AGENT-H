@@ -104,6 +104,22 @@ Indexes: `idx_products_business(business_phone, active)`, IVFFlat index on embed
 
 **Embedding strategy:** Re-embed only when `name`, `description`, or `specs` change. Price/quantity changes do NOT trigger re-embedding.
 
+**Image uploads:** Stored at `backend/static/uploads/{business_phone}/{product_id}.{ext}` and served via the existing `/static` mount. URL saved in `products.image_url`. Ephemeral on Railway — swap `backend/api/routes/products.py:upload_product_image` to write to object storage (S3, R2) when needed.
+
+### `leads` — Qualified leads captured by the AI agent
+
+| Column | Type | Notes |
+|--------|------|-------|
+| business_phone | VARCHAR(30) | Composite PK |
+| customer_phone | VARCHAR(30) | Composite PK |
+| customer_name | VARCHAR(200) | Copied from `conversations` at upsert time |
+| summary | TEXT | Lead summary from LLM, refreshed on each QUALIFIED_LEAD |
+| status | VARCHAR(20) | `new` \| `contacted` \| `won` \| `lost` (default `new`) |
+| created_at | TIMESTAMP | Row first created |
+| updated_at | TIMESTAMP | Updated on each AI upsert or manual status change |
+
+**Write path:** `services/rag.py` upserts into `leads` every time the LLM classifies a conversation as `QUALIFIED_LEAD`. Manual status changes come from `PUT /api/leads/{customer_phone}` (dashboard only — n8n does not touch this table).
+
 ## Environment Variables
 
 File: `backend/.env` (never committed)
