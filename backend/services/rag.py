@@ -113,7 +113,7 @@ async def process_message(
             logger.warning("process: no in_progress message for business=%s — skipping LLM", business_phone)
             return ProcessOut(reply="", classification="OUT_OF_SCOPE")
         query = (
-            " ".join(m.content for m in to_answer if m.role in ("user", "customer"))
+            " ".join(m.content for m in to_answer if m.role in ("customer"))
             or " ".join(m.content for m in to_answer)
         )
         prompt_messages = context_msgs + to_answer

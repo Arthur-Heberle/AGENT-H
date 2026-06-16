@@ -48,6 +48,19 @@ async def list_conversations(
     return result
 
 
+async def is_ai_enabled(
+    pool: Pool,
+    customer_phone: str,
+    business_phone: str,
+) -> bool:
+    row = await pool.fetchrow(
+        "SELECT ai_enabled FROM conversations WHERE customer_phone = $1 AND business_phone = $2",
+        customer_phone,
+        business_phone,
+    )
+    return row["ai_enabled"] if row else True
+
+
 async def toggle_ai(
     pool: Pool,
     customer_phone: str,
