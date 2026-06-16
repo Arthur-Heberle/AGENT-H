@@ -69,7 +69,7 @@ const i18n = {
     'empty.conversations': 'Nenhuma conversa ainda.',
     'empty.catalog': 'Catálogo vazio. Adicione seu primeiro produto.',
     'empty.conv_select': 'Selecione uma conversa para visualizar',
-    'msg.sender_ai': 'IA',
+    'msg.sender_ai': 'Agente IA',
     'msg.sender_employee': 'Atendente',
     'error.generic': 'Erro ao carregar dados.',
     'btn.retry': 'Tentar novamente',
@@ -224,8 +224,8 @@ const i18n = {
     'empty.conversations': 'No conversations yet.',
     'empty.catalog': 'Catalog is empty. Add your first product.',
     'empty.conv_select': 'Select a conversation to view',
-    'msg.sender_ai': 'AI',
-    'msg.sender_employee': 'Agent',
+    'msg.sender_ai': 'AI Agent',
+    'msg.sender_employee': 'Attendant',
     'error.generic': 'Error loading data.',
     'btn.retry': 'Retry',
     'btn.open': 'Open',
@@ -991,7 +991,7 @@ async function renderConvDetail(conv) {
       } else {
         msgEl.innerHTML = messages.map(m => {
           const cssRole = msgCssRole(m.role);
-          const senderLabel = cssRole === 'ai' ? t('msg.sender_ai')
+          const senderLabel = cssRole === 'assistant' ? t('msg.sender_ai')
                             : cssRole === 'employee' ? t('msg.sender_employee')
                             : '';
           return `
