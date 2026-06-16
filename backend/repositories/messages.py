@@ -13,7 +13,7 @@ async def get_history(
         SELECT message, role, created_at
         FROM messages
         WHERE customer_phone = $1 AND business_phone = $2
-        ORDER BY created_at ASC
+        ORDER BY created_at ASC, id ASC
         """,
         customer_phone,
         business_phone,

@@ -69,6 +69,8 @@ const i18n = {
     'empty.conversations': 'Nenhuma conversa ainda.',
     'empty.catalog': 'Catálogo vazio. Adicione seu primeiro produto.',
     'empty.conv_select': 'Selecione uma conversa para visualizar',
+    'msg.sender_ai': 'IA',
+    'msg.sender_employee': 'Atendente',
     'error.generic': 'Erro ao carregar dados.',
     'btn.retry': 'Tentar novamente',
     'btn.open': 'Abrir',
@@ -222,6 +224,8 @@ const i18n = {
     'empty.conversations': 'No conversations yet.',
     'empty.catalog': 'Catalog is empty. Add your first product.',
     'empty.conv_select': 'Select a conversation to view',
+    'msg.sender_ai': 'AI',
+    'msg.sender_employee': 'Agent',
     'error.generic': 'Error loading data.',
     'btn.retry': 'Retry',
     'btn.open': 'Open',
@@ -437,6 +441,7 @@ const mockAPI = realAPI;
 function relTime(isoString) {
   if (!isoString) return '';
   const diff = Math.floor((Date.now() - new Date(isoString).getTime()) / 1000);
+  if (diff < 0) return 'agora';
   if (diff < 60) return diff + 's';
   if (diff < 3600) return Math.floor(diff / 60) + 'min';
   if (diff < 86400) return Math.floor(diff / 3600) + 'h';
@@ -454,7 +459,8 @@ function volume7dToChartData(volume7d) {
 
 function msgCssRole(role) {
   const r = (role || '').replace(/"/g, '').trim().toLowerCase();
-  if (['assistant', 'owner', 'employee', 'business'].includes(r)) return 'ai';
+  if (r === 'assistant') return 'ai';
+  if (['employee', 'owner', 'business'].includes(r)) return 'employee';
   return 'customer';
 }
 
@@ -985,8 +991,12 @@ async function renderConvDetail(conv) {
       } else {
         msgEl.innerHTML = messages.map(m => {
           const cssRole = msgCssRole(m.role);
+          const senderLabel = cssRole === 'ai' ? t('msg.sender_ai')
+                            : cssRole === 'employee' ? t('msg.sender_employee')
+                            : '';
           return `
             <div class="msg-row ${escapeHtml(cssRole)}">
+              ${senderLabel ? `<div class="msg-sender">${escapeHtml(senderLabel)}</div>` : ''}
               <div class="msg-bubble ${escapeHtml(cssRole)}">${escapeHtml(m.message)}</div>
               <div class="msg-time">${escapeHtml(relTime(m.created_at))}</div>
             </div>`;

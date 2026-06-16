@@ -1060,6 +1060,19 @@ th.num-center {
   color: var(--text-primary);
 }
 
+.msg-bubble.employee {
+  align-self: flex-end;
+  background: rgba(63, 125, 92, 0.12);
+  border-bottom-right-radius: 4px;
+  color: var(--text-primary);
+}
+
+.msg-sender {
+  font-size: 11px;
+  color: var(--text-tertiary);
+  margin-bottom: 2px;
+}
+
 .msg-time {
   font-size: 11px;
   color: var(--text-tertiary);
@@ -1073,6 +1086,7 @@ th.num-center {
 
 .msg-row.customer { align-items: flex-start; }
 .msg-row.ai       { align-items: flex-end; }
+.msg-row.employee { align-items: flex-end; }
 
 /* ── TOGGLE SWITCH ───────────────────────────────────────── */
 .toggle-wrap {
