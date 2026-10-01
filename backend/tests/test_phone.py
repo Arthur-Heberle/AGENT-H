@@ -2,7 +2,7 @@ from core.phone import is_private_phone, normalize_phone
 
 
 def test_strips_plus_prefix():
-    assert normalize_phone("+5549988788878") == "554988788878"
+    assert normalize_phone("+5549991942504") == "5549991942504"
 
 
 def test_removes_brazilian_ninth_digit():
